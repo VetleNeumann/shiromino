@@ -13,8 +13,8 @@
 #include <cmath>
 #include <filesystem>
 #include <iostream>
-#include "SDL.h"
-#include "SDL_image.h"
+#include "SDL3/SDL.h"
+#include "SDL3_image/SDL_image.h"
 #include <string>
 #include <vector>
 
@@ -32,7 +32,7 @@ bool img_load(gfx_image *img, std::filesystem::path&& pathWithoutExtension, Core
 
     if(s) {
         img->tex = SDL_CreateTextureFromSurface(cs->screen.renderer, s);
-        SDL_FreeSurface(s);
+        SDL_DestroySurface(s);
     }
 
     return img->tex != NULL;
@@ -161,8 +161,8 @@ int gfx_drawbuttons(CoreState *cs, int type)
         return 0;
 
     SDL_Texture *font = cs->assets->font.tex;
-    SDL_Rect src = { 0, 0, 6, 28 };
-    SDL_Rect dest = { 0, 0, 6, 28 };
+    SDL_FRect src = { 0, 0, 6, 28 };
+    SDL_FRect dest = { 0, 0, 6, 28 };
 
     struct text_formatting fmt = {
         RGBA_DEFAULT,
@@ -267,9 +267,9 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
 
     SDL_SetTextureColorMod(blocks, 220, 220, 220);
 
-    SDL_Rect tdest = { x, y - 48, 274, 416 };
-    SDL_Rect src = { 0, 0, 256, 256 };
-    SDL_Rect dest = { 0, 0, 16, 16 };
+    SDL_FRect tdest = { x, y - 48, 274, 416 };
+    SDL_FRect src = { 0, 0, 256, 256 };
+    SDL_FRect dest = { 0, 0, 16, 16 };
 
     qrsdata *q = (qrsdata *)cs->p1game->data;
     int use_deltas = 0;
@@ -327,8 +327,8 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
 
     if((flags & DRAWFIELD_GRID) && !(flags & DRAWFIELD_BIG))
     {
-        SDL_Rect gridSrc = { 6 * 256, 6 * 256, 256, 256 };
-        SDL_Rect gridDest = { 0, 0, 16, 16 };
+        SDL_FRect gridSrc = { 6 * 256, 6 * 256, 256, 256 };
+        SDL_FRect gridDest = { 0, 0, 16, 16 };
 
         for(i = 0; i < logicalW; i++)
         {
@@ -356,8 +356,8 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
 
     if(q->state_flags & GAMESTATE_CREDITS && q->credits_tex)
     {
-        SDL_Rect creditsViewport = { 0, 0, 160, 320 };
-        SDL_Rect creditsDest = { x + 32, y + 32, 160, 320 };
+        SDL_FRect creditsViewport = { 0, 0, 160, 320 };
+        SDL_FRect creditsDest = { x + 32, y + 32, 160, 320 };
 
         int creditsTime = q->credit_roll_length - q->credit_roll_counter;
         //creditsTime = cs->p1game->frame_counter;
@@ -383,8 +383,8 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
             if(creditsViewport.y + 160 > q->credits_tex_height)
             {
                 SDL_Texture *titleKanji = Shiro::ImageAsset::get(cs->assetMgr, "title_kanji").getTexture();
-                SDL_Rect titleViewport = { 0, 0, 3200, 1600 };
-                SDL_Rect titleDest = { x + 32 + (5 * 16) - 60, y + 32 + (10 * 16) - 30, 120, 60 };
+                SDL_FRect titleViewport = { 0, 0, 3200, 1600 };
+                SDL_FRect titleDest = { x + 32 + (5 * 16) - 60, y + 32 + (10 * 16) - 30, 120, 60 };
 
                 SDL_SetTextureColorMod(titleKanji, 0x20, 0x20, 0xFF);
 
@@ -579,7 +579,7 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
                         SDL_GetRenderDrawColor(cs->screen.renderer, &r_, &g_, &b_, &a_);
                         SDL_SetRenderDrawColor(cs->screen.renderer, 0xFF, 0xFF, 0xFF, 0x8C);
 
-                        SDL_Rect outlineRect = { dest.x, dest.y, cellSize, 2 };
+                        SDL_FRect outlineRect = { dest.x, dest.y, cellSize, 2 };
 
                         c = field->getCell(i, static_cast<std::size_t>(j) - 1); // above
                         if(!IS_STACK(c) && c != QRS_FIELD_W_LIMITER && c != GRID_OOB)
@@ -667,8 +667,8 @@ int gfx_drawkeys(CoreState *cs, Shiro::KeyFlags *k, int x, int y, Shiro::u32 rgb
     SDL_SetTextureColorMod(font, R(rgba), G(rgba), B(rgba));
     SDL_SetTextureAlphaMod(font, A(rgba));
 
-    SDL_Rect src = { 0, 80, 16, 16 };
-    SDL_Rect dest = { 0, y, 16, 16 };
+    SDL_FRect src = { 0, 80, 16, 16 };
+    SDL_FRect dest = { 0, y, 16, 16 };
 
     std::string text_a = "A";
     std::string text_b = "B";
@@ -810,8 +810,8 @@ int gfx_drawtext_partial(CoreState *cs, std::string text, int pos, std::size_t l
         SDL_SetTextureAlphaMod(font->outline_sheet, A(fmt->outline_rgba));
     }
 
-    SDL_Rect src = { 0, 0, (int) font->char_w, (int) font->char_h };
-    SDL_Rect dest = { x, y, (int) (fmt->size_multiplier * (float) font->char_w), (int) (fmt->size_multiplier * (float) font->char_h) };
+    SDL_FRect src = { 0, 0, (int) font->char_w, (int) font->char_h };
+    SDL_FRect dest = { x, y, (int) (fmt->size_multiplier * (float) font->char_w), (int) (fmt->size_multiplier * (float) font->char_h) };
 
     std::size_t i = 0;
 
@@ -1010,8 +1010,8 @@ int gfx_drawpiece(CoreState *cs, Shiro::Grid *field, int field_x, int field_y, S
     SDL_Texture *blocks;
     blocks = Shiro::ImageAsset::get(cs->assetMgr, "pieces_256x256").getTexture();
     int size = (flags & DRAWPIECE_SMALL) ? 8 : (flags & DRAWPIECE_BIG ? 32 : 16);
-    SDL_Rect src = { 0, 0, 256, 256 };
-    SDL_Rect dest = { 0, 0, size, size };
+    SDL_FRect src = { 0, 0, 256, 256 };
+    SDL_FRect dest = { 0, 0, size, size };
 
     std::string piece_str = "A";
     piece_str[0] = pieceDefinition.qrsID + 'A';
@@ -1092,7 +1092,7 @@ int gfx_drawpiece(CoreState *cs, Shiro::Grid *field, int field_x, int field_y, S
                             SDL_GetRenderDrawColor(cs->screen.renderer, &r_, &g_, &b_, &a_);
                             SDL_SetRenderDrawColor(cs->screen.renderer, 0xFF, 0xFF, 0xFF, 0x8C);
 
-                            SDL_Rect outlineRect = { dest.x, dest.y, size, 2 };
+                            SDL_FRect outlineRect = { dest.x, dest.y, size, 2 };
 
                             c = field->getCell(i, static_cast<std::size_t>(j) - 1); // above
                             if(!IS_STACK(c) && c != QRS_FIELD_W_LIMITER && c != GRID_OOB)
@@ -1161,8 +1161,8 @@ int gfx_drawtimer(CoreState *cs, Shiro::Timer *t, int x, Shiro::u32 rgba)
     qrsdata *q = (qrsdata *)cs->p1game->data;
     int y = q->field_y;
 
-    SDL_Rect src = { 0, 96, 20, 32 };
-    SDL_Rect dest = { x, 26 * 16 + 8 - QRS_FIELD_Y + y, 20, 32 };
+    SDL_FRect src = { 0, 96, 20, 32 };
+    SDL_FRect dest = { x, 26 * 16 + 8 - QRS_FIELD_Y + y, 20, 32 };
 
     uint64_t min = t->min();
     uint64_t sec = t->sec() % 60;

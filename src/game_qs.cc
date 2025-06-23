@@ -15,7 +15,7 @@
 #include "RefreshRates.h"
 #include "replay.h"
 #include "Timer.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include "OS.h"
 #include "Credits.h"
 #include <cmath>

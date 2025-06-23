@@ -4,7 +4,7 @@
 #define PDBMFONT_BINARY
 #define PDBMFONT_XML
 #include "PDBMFont.hpp"
-#include "SDL_image.h"
+#include "SDL3_image/SDL_image.h"
 #include <cassert>
 namespace Shiro {
     FontAssetLoader::FontAssetLoader(const std::filesystem::path &assetDirectory, const Screen &screen) :
@@ -33,7 +33,7 @@ namespace Shiro {
                 break;
             }
             fontAsset.pages[i] = SDL_CreateTextureFromSurface(screen.renderer, surface);
-            SDL_FreeSurface(surface);
+            SDL_DestroySurface(surface);
             if (!fontAsset.pages[i]) {
                 fontAsset.bmFont = PDBMFont::BMFont();
                 for (const auto page : fontAsset.pages) {

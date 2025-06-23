@@ -5,7 +5,7 @@
 #include "video/Screen.h"
 #include <filesystem>
 #include <memory>
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 namespace Shiro {
     struct AnimationGraphic : public Graphic {

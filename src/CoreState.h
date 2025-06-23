@@ -14,7 +14,7 @@
 #include "Player.h"
 #include "Settings.h"
 #include "Records.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <vector>
 #define RECENT_FRAMES 60
 

@@ -1,8 +1,9 @@
 #include "gfx_helpers.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <vector>
-void gfx_drawCodedGrid(SDL_Renderer *renderer, Shiro::Grid *cells, SDL_Texture *paletteTex, SDL_Point position,
-    int cellW, int cellH, std::vector<paletteMapEntry>& paletteValMap)
+
+void gfx_drawCodedGrid(SDL_Renderer *renderer, Shiro::Grid *cells, SDL_Texture *paletteTex, SDL_Point position, int cellW, int cellH,
+                       std::vector<paletteMapEntry> &paletteValMap)
 {
     for(int i = 0; i < int(cells->getWidth()); i++)
     {
@@ -14,8 +15,8 @@ void gfx_drawCodedGrid(SDL_Renderer *renderer, Shiro::Grid *cells, SDL_Texture *
             int destX = position.x + (i * cellW);
             int destY = position.y + (j * cellH);
 
-            SDL_Rect src = {0, 0, cellW, cellH};
-            SDL_Rect dest = {destX, destY, cellW, cellH};
+            SDL_FRect src = {0, 0, cellW, cellH};
+            SDL_FRect dest = {destX, destY, cellW, cellH};
 
             if(!paletteValMap.empty())
             {
@@ -50,10 +51,9 @@ void gfx_drawCodedGrid(SDL_Renderer *renderer, Shiro::Grid *cells, SDL_Texture *
                 for(auto m : paletteList)
                 {
                     src.x = m * cellW;
-
                     if(paletteTex)
                     {
-                        SDL_RenderCopy(renderer, paletteTex, &src, &dest);
+                        SDL_RenderTexture(renderer, paletteTex, &src, &dest);
                     }
                 }
             }
@@ -66,7 +66,7 @@ void gfx_drawCodedGrid(SDL_Renderer *renderer, Shiro::Grid *cells, SDL_Texture *
 
                     if(paletteTex)
                     {
-                        SDL_RenderCopy(renderer, paletteTex, &src, &dest);
+                        SDL_RenderTexture(renderer, paletteTex, &src, &dest);
                     }
                 }
             }

@@ -1,5 +1,5 @@
 #include "asset/Image.h"
-#include "SDL_image.h"
+#include "SDL3_image/SDL_image.h"
 #include <cassert>
 #include <iostream>
 
@@ -20,14 +20,14 @@ namespace Shiro {
         surface = IMG_Load((assetDirectory / imageAsset.location).concat(".png").string().c_str());
         if (surface) {
             imageAsset.texture = SDL_CreateTextureFromSurface(screen.renderer, surface);
-            SDL_FreeSurface(surface);
+            SDL_DestroySurface(surface);
             return imageAsset.texture != nullptr;
         }
 
         surface = IMG_Load((assetDirectory / imageAsset.location).concat(".jpg").string().c_str());
         if(surface) {
             imageAsset.texture = SDL_CreateTextureFromSurface(screen.renderer, surface);
-            SDL_FreeSurface(surface);
+            SDL_DestroySurface(surface);
             return imageAsset.texture != nullptr;
         }
 

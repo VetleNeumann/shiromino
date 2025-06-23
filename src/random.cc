@@ -1,6 +1,6 @@
 #include "random.h"
 #include "QRS0.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>

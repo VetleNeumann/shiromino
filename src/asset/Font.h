@@ -5,7 +5,7 @@
 #define PDBMFONT_BINARY
 #define PDBMFONT_XML
 #include "PDBMFont.hpp"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <vector>
 namespace Shiro {
     class FontAssetLoader : public AssetLoader {

@@ -71,7 +71,7 @@ void MultiEditor::handleInput()
     if(origin->redo && !field_edit_in_progress)
         usr_field_redo(origin, d);
 
-    if(SDL_GetModState() & KMOD_SHIFT && origin->mouse_left_down)
+    if(SDL_GetModState() & SDL_KMOD_SHIFT && origin->mouse_left_down)
     {
         if(origin->mouse_left_down == BUTTON_PRESSED_THIS_FRAME)
         {
@@ -336,7 +336,7 @@ void MultiEditor::handleInput()
                 {
                     if(gridgetcell(usr_field, i, j + 2) != QRS_FIELD_W_LIMITER && c != QRS_PIECE_GEM)
                     {
-                        if(SDL_GetModState() & KMOD_SHIFT)
+                        if(SDL_GetModState() & SDL_KMOD_SHIFT)
                         {
                             if(IS_STACK(gridgetcell(usr_field, i, j + 2)))
                             {
@@ -358,7 +358,7 @@ void MultiEditor::handleInput()
                     }
                     else if(gridgetcell(usr_field, i, j + 2) > 0 && c == QRS_PIECE_GEM)
                     {
-                        if(SDL_GetModState() & KMOD_SHIFT)
+                        if(SDL_GetModState() & SDL_KMOD_SHIFT)
                         {
                             if(IS_STACK(gridgetcell(usr_field, i, j + 2)))
                             {
@@ -390,7 +390,7 @@ void MultiEditor::handleInput()
         {
             if(gridgetcell(usr_field, cell_x, cell_y + 2) != QRS_FIELD_W_LIMITER && c != QRS_PIECE_GEM)
             {
-                if(SDL_GetModState() & KMOD_SHIFT)
+                if(SDL_GetModState() & SDL_KMOD_SHIFT)
                 {
                     if(IS_STACK(gridgetcell(usr_field, cell_x, cell_y + 2)))
                     {
@@ -412,7 +412,7 @@ void MultiEditor::handleInput()
             }
             else if(gridgetcell(usr_field, cell_x, cell_y + 2) > 0 && c == QRS_PIECE_GEM)
             {
-                if(SDL_GetModState() & KMOD_SHIFT)
+                if(SDL_GetModState() & SDL_KMOD_SHIFT)
                 {
                     if(IS_STACK(gridgetcell(usr_field, cell_x, cell_y + 2)))
                     {

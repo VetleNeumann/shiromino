@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.21)
 project(shiromino
 	DESCRIPTION "A fast-paced puzzle game with roots in the arcade."
 	HOMEPAGE_URL "https://github.com/shiromino/shiromino"
@@ -13,6 +13,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(PORTABLE "Selects whether the build should be \"portable\", where all files are bundled together in one distributable folder/package.")
 option(APPIMAGE_BASE_PATH "Selects whether an AppImage build should use the directory where the AppImage is located for the base path, instead of the the contents of the AppImage itself.")
+
+cmake_policy(SET CMP0169 OLD)
 
 #
 # Basic project layout
@@ -203,17 +205,22 @@ target_include_directories(${GAME_EXECUTABLE}
 if(UNIX OR MINGW)
 	target_compile_definitions(${GAME_EXECUTABLE} PRIVATE _POSIX_VERSION=200112L)
 endif()
-FetchContent_Declare(nanotime
-	GIT_REPOSITORY https://github.com/nightmareci/nanotime.git
-	GIT_TAG e8b6a59cdc139fa836c85d9ecbd469aabf828c02
-)
-FetchContent_GetProperties(nanotime)
-if(NOT nanotime_POPULATED)
-	FetchContent_Populate(nanotime)
+
+if(DEFINED NANOTIME_SOURCE_DIRECTORY)
+    set(NANOTIME_SOURCE_DIRECTORY "${NANOTIME_SOURCE_DIRECTORY}")
+else()
+    FetchContent_Declare(nanotime
+        GIT_REPOSITORY https://github.com/nightmareci/nanotime.git
+        GIT_TAG e8b6a59cdc139fa836c85d9ecbd469aabf828c02
+    )
+    FetchContent_GetProperties(nanotime)
+    if(NOT nanotime_POPULATED)
+        FetchContent_Populate(nanotime)
+    endif()
+    FetchContent_GetProperties(nanotime
+        SOURCE_DIR NANOTIME_SOURCE_DIRECTORY
+    )
 endif()
-FetchContent_GetProperties(nanotime
-	SOURCE_DIR NANOTIME_SOURCE_DIRECTORY
-)
 target_sources(${GAME_EXECUTABLE}
 	PRIVATE
 		"${NANOTIME_SOURCE_DIRECTORY}/nanotime.h"
@@ -237,204 +244,50 @@ set(EXECUTABLE_THIRD_PARTY "${EXECUTABLE_SOURCES}")
 list(FILTER EXECUTABLE_THIRD_PARTY INCLUDE REGEX third-party)
 list(JOIN EXECUTABLE_THIRD_PARTY " " EXECUTABLE_THIRD_PARTY)
 source_group("Third-party" FILES "${EXECUTABLE_THIRD_PARTY}")
+
 #
 # Dependency management
 #
-set(MINIMUM_SDL2_VERSION 2.0.5)
-set(MINIMUM_SDL2_IMAGE_VERSION 2.0.5)
-set(MINIMUM_SDL2_MIXER_VERSION 2.0.3)
-set(MINIMUM_SQLITE3_VERSION 3.24.0)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SDL3 REQUIRED sdl3)
+pkg_check_modules(SDL3_IMAGE REQUIRED "sdl3-image")
+pkg_check_modules(SDL3_MIXER REQUIRED "sdl3-mixer")
+pkg_check_modules(SQLITE3 REQUIRED sqlite3)
 
-option(FETCH_DEPENDENCIES "Selects whether dependencies should be downloaded and built as part of the project build.")
-if(FETCH_DEPENDENCIES)
-	# We don't need to check package versions here, as the git tags are
-	# effectively version numbers already verified as working.
-
-	set(BUILD_SHARED_LIBS FALSE)
-
-	set(SDL_TEST FALSE)
-	FetchContent_Declare(
-		SDL2
-		GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-		GIT_TAG 4761467b2e8cc7db3d6bc98747daca0051858f09
-		GIT_PROGRESS TRUE
-		OVERRIDE_FIND_PACKAGE
-	)
-
-	set(SDL2IMAGE_VENDORED TRUE)
-	set(SDL2IMAGE_SAMPLES FALSE)
-	set(SDL2IMAGE_INSTALL FALSE)
-	FetchContent_Declare(
-		SDL2_image
-		GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
-		GIT_TAG d3c6d5963dbe438bcae0e2b6f3d7cfea23d02829
-		GIT_PROGRESS TRUE
-	)
-
-	set(SDL2MIXER_VENDORED TRUE)
-	set(SDL2MIXER_SAMPLES FALSE)
-	set(SDL2MIXER_INSTALL FALSE)
-	FetchContent_Declare(
-		SDL2_mixer
-		GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
-		GIT_TAG 6103316427a8479e5027e41ab9948bebfc1c3c19
-		GIT_PROGRESS TRUE
-	)
-
-	FetchContent_Declare(
-		sqlite3-cmake
-		GIT_REPOSITORY https://github.com/undisputed-seraphim/sqlite3-cmake.git
-		GIT_TAG 4464c04eb025cd5ff27a2952658da691bc18683e
-		GIT_PROGRESS TRUE
-	)
-
-	FetchContent_MakeAvailable(
-		SDL2
-		SDL2_image
-		SDL2_mixer
-		sqlite3-cmake
-	)
-
-	FetchContent_GetProperties(
-		sqlite3-cmake
-		SOURCE_DIR SQLITE3_SOURCE_DIR
-	)
-	target_include_directories(${GAME_EXECUTABLE} PRIVATE "${SQLITE3_SOURCE_DIR}/src")
-
-	target_link_libraries(${GAME_EXECUTABLE}
-		PRIVATE
-			SDL2::SDL2
-			SDL2_image
-			SDL2_mixer
-			sqlite3
-	)
-	if(TARGET SDL2::SDL2main)
-		target_link_libraries(${GAME_EXECUTABLE}
-			PRIVATE
-				SDL2::SDL2main
-		)
-	endif()
-elseif(UNIX OR MINGW)
-	find_package(PkgConfig)
-	function(target_pkg_config_import TARGET DEPENDENCY)
-		string(TOUPPER ${DEPENDENCY} DEPENDENCY_VARIABLE)
-		set(MINIMUM_VERSION ${MINIMUM_${DEPENDENCY_VARIABLE}_VERSION})
-		pkg_check_modules(${DEPENDENCY_VARIABLE} REQUIRED ${DEPENDENCY}>=${MINIMUM_VERSION})
-		target_compile_options(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_CFLAGS}")
-		target_compile_options(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_CFLAGS_OTHER}")
-		target_include_directories(${TARGET} SYSTEM PRIVATE "${${DEPENDENCY_VARIABLE}_INCLUDE_DIRS}")
-		target_link_directories(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_LIBRARY_DIRS}")
-		target_link_libraries(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_LIBRARIES}")
-		target_link_options(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_LDFLAGS}")
-		target_link_options(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_LDFLAGS_OTHER}")
-	endfunction()
-	if(PKG_CONFIG_FOUND)
-		#
-		# Link anything that `pkg-config` can't resolve on its own.
-		#
-		target_link_libraries(${GAME_EXECUTABLE} PRIVATE
-			m
-			${CMAKE_DL_LIBS}
-		)
-		#
-		# Let `pkg-config` do its magic.
-		#
-		set(DEPENDENCIES
-			sdl2
-			SDL2_image
-			SDL2_mixer
-			sqlite3
-		)
-		foreach(DEPENDENCY ${DEPENDENCIES})
-			target_pkg_config_import(${GAME_EXECUTABLE} ${DEPENDENCY})
-		endforeach()
-	else()
-		message(FATAL_ERROR "On Unix platforms, pkg-config is required for getting dependencies.")
-	endif()
-else()
-	find_package(SDL2 REQUIRED)
-	if(SDL2_VERSION VERSION_LESS 2.0.5)
-		message(FATAL_ERROR "SDL2 version ${SDL2_VERSION} found but at least ${MINIMUM_SDL2_VERSION} is required.")
-	endif()
-
-	find_package(SDL2_image REQUIRED)
-	if(SDL2_image_VERSION VERSION_LESS ${MINIMUM_SDL2_IMAGE_VERSION})
-		message(FATAL_ERROR "SDL2_image version ${SDL2_image_VERSION} found but at least ${MINIMUM_SDL2_IMAGE_VERSION} is required.")
-	endif()
-
-	find_package(SDL2_mixer REQUIRED)
-	if(SDL2_mixer_VERSION VERSION_LESS ${MINIMUM_SDL2_MIXER_VERSION})
-		message(FATAL_ERROR "SDL2_mixer version ${SDL2_mixer_VERSION} found but at least ${MINIMUM_SDL2_MIXER_VERSION} is required.")
-	endif()
-
-	find_package(SQLite3 REQUIRED)
-	if(SQLite3_VERSION VERSION_LESS ${MINIMUM_SQLITE3_VERSION})
-		message(FATAL_ERROR "SQLite3 version ${SQLite3_VERSION} found but at least ${MINIMUM_SQLITE3_VERSION} is required.")
-	endif()
-
-	target_link_libraries(${GAME_EXECUTABLE}
-		PUBLIC
-			SDL2::SDL2
-			SDL2_image::SDL2_image
-			SDL2_mixer::SDL2_mixer
-			SQLite::SQLite3
-	)
-	if(TARGET SDL2::SDL2main)
-		target_link_libraries(${GAME_EXECUTABLE}
-			PRIVATE
-				SDL2::SDL2main
-		)
-	endif()
-endif()
-#
-# On distributions with prehistoric packages, clang/gcc are unable to link these libraries themselves.
-# NOTE: We should remove this section as soon as debian-stable adds `{clang,g++}-9`.
-#
-# See https://en.cppreference.com/w/cpp/filesystem
-#
-if(
-	CMAKE_CXX_COMPILER_ID STREQUAL GNU AND
-	CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 5.0 AND
-	CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.1
+target_include_directories(${GAME_EXECUTABLE} PRIVATE
+	${SDL3_INCLUDE_DIRS}
+	${SDL3_IMAGE_INCLUDE_DIRS}
+	${SDL3_MIXER_INCLUDE_DIRS}
+	${SQLITE3_INCLUDE_DIRS}
 )
-	set(FILE_SYSTEM_LIBRARY_NAME stdc++fs)
-elseif(
-	CMAKE_CXX_COMPILER_ID STREQUAL Clang AND
-	CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 5.0 AND
-	CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0
+target_link_libraries(${GAME_EXECUTABLE}
+	PRIVATE
+		${SDL3_LIBRARIES}
+		${SDL3_IMAGE_LIBRARIES}
+		${SDL3_MIXER_LIBRARIES}
+		${SQLITE3_LIBRARIES}
 )
-	set(FILE_SYSTEM_LIBRARY_NAME c++fs)
-endif()
-if(DEFINED FILE_SYSTEM_LIBRARY_NAME)
-	find_library(FILE_SYSTEM ${FILE_SYSTEM_LIBRARY_NAME}
-		PATHS
-			/usr/lib/llvm-5/lib
-			/usr/lib/llvm-6/lib
-			/usr/lib/llvm-7/lib
-			/usr/lib/llvm-8/lib
-			/usr/lib/gcc/x86_64-linux-gnu/5
-			/usr/lib/gcc/x86_64-linux-gnu/6
-			/usr/lib/gcc/x86_64-linux-gnu/7
-			/usr/lib/gcc/x86_64-linux-gnu/8
-			/usr/lib/gcc/x86_64-linux-gnu/9
-		REQUIRED
-	)
-	target_link_libraries(${GAME_EXECUTABLE} PRIVATE ${FILE_SYSTEM})
-endif()
+
 #
 # On clang and gcc, add a few sanitizers in the `Debug` configuration.
 # Support for this is currently only partially available on MSYS2, so we disable it for WIN32.
 #
 if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-	if(CMAKE_BUILD_TYPE STREQUAL Debug AND NOT MINGW)
-		target_link_libraries(${GAME_EXECUTABLE}
-			PRIVATE
-				-fsanitize=address,leak,undefined
-				-fsanitize-address-use-after-scope
-				-fsanitize-undefined-trap-on-error
-		)
-	endif()
+	# if(CMAKE_BUILD_TYPE STREQUAL Debug AND NOT MINGW)
+	# 	target_link_libraries(${GAME_EXECUTABLE}
+	# 		PRIVATE
+	# 			-fsanitize=address,leak,undefined
+	# 			-fsanitize-address-use-after-scope
+	# 			-fsanitize-undefined-trap-on-error
+	# 	)
+	# endif()
+	target_compile_options(${GAME_EXECUTABLE}
+		PRIVATE
+			-g
+			-O0
+	)
 endif()
+
 #
 # Enable parallel compiling when using MSVC.
 #

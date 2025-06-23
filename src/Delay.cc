@@ -25,7 +25,7 @@ void Delay(const std::uint32_t milliseconds) {
 	WaitForSingleObject(timer, INFINITE);
 }
 #else
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 void Delay(const std::uint32_t milliseconds) {
     SDL_Delay(milliseconds);

@@ -582,7 +582,7 @@ int menu_input(game_t *g)
         cs->text_cut = NULL;
     }
 
-    if((cs->pressed.up || cs->is_up_input_repeat(DAS)) && d->selection > 0 && !(SDL_GetModState() & (KMOD_CTRL | KMOD_SHIFT)))
+    if((cs->pressed.up || cs->is_up_input_repeat(DAS)) && d->selection > 0 && !(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT)))
     {
         update = true;
         for(i = d->selection - 1;; i--)
@@ -637,7 +637,7 @@ int menu_input(game_t *g)
         }
     }
 
-    if((cs->pressed.down || cs->is_down_input_repeat(DAS)) && (d->selection < d->numopts - 1) && !(SDL_GetModState() & (KMOD_CTRL | KMOD_SHIFT)))
+    if((cs->pressed.down || cs->is_down_input_repeat(DAS)) && (d->selection < d->numopts - 1) && !(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT)))
     {
         update = true;
         for(i = d->selection + 1;; i++)
@@ -702,14 +702,14 @@ int menu_input(game_t *g)
 
     if(d->is_paged)
     {
-        if((cs->pressed.left || cs->is_left_input_repeat(DAS)) && d->page > 0 && !(SDL_GetModState() & (KMOD_CTRL | KMOD_SHIFT)))
+        if((cs->pressed.left || cs->is_left_input_repeat(DAS)) && d->page > 0 && !(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT)))
         {
             update = true;
             d->selection = d->selection - d->page_length;
             d->page--;
         }
 
-        if((cs->pressed.right || cs->is_right_input_repeat(DAS)) && d->page < ((d->numopts - 1) / d->page_length) && !(SDL_GetModState() & (KMOD_CTRL | KMOD_SHIFT)))
+        if((cs->pressed.right || cs->is_right_input_repeat(DAS)) && d->page < ((d->numopts - 1) / d->page_length) && !(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT)))
         {
             update = true;
             d->selection = d->selection + d->page_length;
@@ -742,7 +742,7 @@ int menu_input(game_t *g)
 
     m = &d->menu[d->selection];
 
-    if(!(SDL_GetModState() & (KMOD_CTRL | KMOD_SHIFT)))
+    if(!(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT)))
     {
         switch(m->type)
         {
@@ -2451,8 +2451,8 @@ int mload_replay(game_t *g, int val)
         }
     }
 
-    auto activateLambda = [](CoreState *cs) { int c = ((SDL_GetModState() & KMOD_SHIFT) != 0); return c; };
-    auto deactivateLambda = [](CoreState *cs) { int c = ((SDL_GetModState() & KMOD_SHIFT) == 0); return c; };
+    auto activateLambda = [](CoreState *cs) { int c = ((SDL_GetModState() & SDL_KMOD_SHIFT) != 0); return c; };
+    auto deactivateLambda = [](CoreState *cs) { int c = ((SDL_GetModState() & SDL_KMOD_SHIFT) == 0); return c; };
 
     gfx_button deleteReplayButton;
     deleteReplayButton.type = BUTTON_TYPE_ACTION;

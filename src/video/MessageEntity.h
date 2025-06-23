@@ -3,7 +3,7 @@
 #include "video/Gfx.h"
 #include "asset/Font.h"
 #include "video/TextGraphic.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <string>
 #include <memory>
 #include <functional>

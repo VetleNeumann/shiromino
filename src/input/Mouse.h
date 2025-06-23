@@ -1,7 +1,7 @@
 #pragma once
 #include "types.h"
 #include "video/Screen.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 namespace Shiro {
     struct Mouse {
@@ -20,10 +20,10 @@ namespace Shiro {
         void updateButtonState();
         void updateLogicalPosition(const Screen& screen);
 
-        int x;
-        int y;
-        int logicalX;
-        int logicalY;
+        float x;
+        float y;
+        float logicalX;
+        float logicalY;
 
         Button leftButton;
         Button rightButton;

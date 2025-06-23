@@ -231,10 +231,10 @@ int TestSPM::draw()
     int blockW = 16;
     int blockH = 16;
 
-    SDL_Rect dest = {fieldPos.x, fieldPos.y, blockW, blockH};
+    SDL_FRect dest = {fieldPos.x, fieldPos.y, blockW, blockH};
     SDL_SetRenderDrawColor(cs.screen.renderer, 255, 255, 255, 180);
 
-    SDL_Rect fieldRect = {fieldPos.x, fieldPos.y, blockW * static_cast<int>(field->getWidth()), blockH * spec->visualFieldH};
+    SDL_FRect fieldRect = {fieldPos.x, fieldPos.y, blockW * static_cast<int>(field->getWidth()), blockH * spec->visualFieldH};
     GUIDrawBorder(fieldRect, 1, Shiro::GUI::RGBA_DEFAULT);
 
     for(std::size_t i = 0; i < field->getWidth(); i++)

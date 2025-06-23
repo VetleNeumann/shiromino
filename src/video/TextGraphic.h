@@ -2,7 +2,7 @@
 #include "asset/Font.h"
 #include "video/Screen.h"
 #include "video/Gfx.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -33,6 +33,6 @@ namespace Shiro {
 
     private:
         const Screen& screen;
-        std::vector<std::tuple<SDL_Texture*, SDL_Rect, SDL_Rect>> textData;
+        std::vector<std::tuple<SDL_Texture*, SDL_FRect, SDL_FRect>> textData;
     };
 }

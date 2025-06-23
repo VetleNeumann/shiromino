@@ -1,9 +1,9 @@
 #pragma once
 
+#include "SDL3/SDL.h"
+#include "gui/GUI.h"
 #include <iostream>
 #include <string>
-#include "SDL.h"
-#include "gui/GUI.h"
 
 #include "Grid.h"
 
@@ -17,11 +17,12 @@ struct paletteMapEntry
 
 class GridCanvas : public GUIInteractable
 {
-public:
-    GridCanvas(int ID, Shiro::Grid *cells, BindableInt& paletteVar, SDL_Texture *paletteTex, unsigned int cellW, unsigned int cellH, SDL_Rect relativeDestRect);
+  public:
+    GridCanvas(int ID, Shiro::Grid *cells, BindableInt &paletteVar, SDL_Texture *paletteTex, unsigned int cellW, unsigned int cellH,
+               SDL_FRect relativeDestRect);
 
-    GridCanvas(int ID, Shiro::Grid *cells, BindableInt& paletteVar, SDL_Texture *paletteTex, std::vector<paletteMapEntry>& paletteValMap,
-        unsigned int cellW, unsigned int cellH, SDL_Rect relativeDestRect)
+    GridCanvas(int ID, Shiro::Grid *cells, BindableInt &paletteVar, SDL_Texture *paletteTex, std::vector<paletteMapEntry> &paletteValMap, unsigned int cellW,
+               unsigned int cellH, SDL_FRect relativeDestRect)
         : GridCanvas(ID, cells, paletteVar, paletteTex, cellW, cellH, relativeDestRect)
     {
         this->paletteValMap = paletteValMap;
@@ -32,12 +33,14 @@ public:
         delete cells;
         cells = nullptr;
 
-        for (const auto* g : undoBuffer) {
+        for(const auto *g : undoBuffer)
+        {
             delete g;
         }
         undoBuffer.clear();
 
-        for (const auto* g : redoBuffer) {
+        for(const auto *g : redoBuffer)
+        {
             delete g;
         }
         redoBuffer.clear();
@@ -48,7 +51,7 @@ public:
 
     void draw();
 
-    void handleEvent(GUIEvent& event);
+    void handleEvent(GUIEvent &event);
     void mouseMoved(int x, int y);
     void mouseClicked(int x, int y, Uint8 button);
     void mouseDragged(int x, int y, Uint8 button);
@@ -86,17 +89,17 @@ public:
     void cutSelection();
     void pasteSelection();
 
-    void eraseCell(GUIVirtualPoint& point);
-    void fillCell(GUIVirtualPoint& point);
-    int getCell(GUIVirtualPoint& point);
+    void eraseCell(GUIVirtualPoint &point);
+    void fillCell(GUIVirtualPoint &point);
+    int getCell(GUIVirtualPoint &point);
 
-    void fillCellPaletteListFromMappedVal(int mappedVal, std::vector<unsigned int>& paletteList);
+    void fillCellPaletteListFromMappedVal(int mappedVal, std::vector<unsigned int> &paletteList);
 
-    //virtual void erase(unsigned int pos) { gridsetcell(cells, gridpostox(cells, pos), gridpostoy(cells, pos), 0); }
-    //virtual void set(unsigned int pos) { gridsetcell(cells, gridpostox(cells, pos), gridpostoy(cells, pos), paletteSelection + 1); }
-    //virtual int get(unsigned int pos) { return gridgetcell(cells, gridpostox(cells, pos), gridpostoy(cells, pos)) - 1; }
+    // virtual void erase(unsigned int pos) { gridsetcell(cells, gridpostox(cells, pos), gridpostoy(cells, pos), 0); }
+    // virtual void set(unsigned int pos) { gridsetcell(cells, gridpostox(cells, pos), gridpostoy(cells, pos), paletteSelection + 1); }
+    // virtual int get(unsigned int pos) { return gridgetcell(cells, gridpostox(cells, pos), gridpostoy(cells, pos)) - 1; }
 
-protected:
+  protected:
     // Shiro::Grid *translatedGrid; // the true underlying cells being edited, with all its coded values
 
     Shiro::Grid *cells;
@@ -108,7 +111,7 @@ protected:
     std::vector<Shiro::Grid *> undoBuffer;
     std::vector<Shiro::Grid *> redoBuffer;
 
-    BindableInt& paletteVar;
+    BindableInt &paletteVar;
     std::vector<paletteMapEntry> paletteValMap;
     unsigned int paletteSelection;
     unsigned int paletteSize;
@@ -124,7 +127,4 @@ protected:
     bool cursorShown;
 };
 
-static inline void GridCanvas_callPaletteObserver(GridCanvas& obj, BindableVariable *bv)
-{
-    obj.readPaletteSelection(bv);
-}
+static inline void GridCanvas_callPaletteObserver(GridCanvas &obj, BindableVariable *bv) { obj.readPaletteSelection(bv); }

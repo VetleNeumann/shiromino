@@ -15,7 +15,7 @@
 #include "replay.h"
 #include "Timer.h"
 #include "RotationTables.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
@@ -603,7 +603,7 @@ int qrs_input(game_t *g)
         {
             if(cs->undo && !d->field_edit_in_progress)
             {
-                if(SDL_GetModState() & KMOD_SHIFT)
+                if(SDL_GetModState() & SDL_KMOD_SHIFT)
                 {
                     while(d->usr_field_undo.size() > 0)
                     {
@@ -618,7 +618,7 @@ int qrs_input(game_t *g)
 
             if(cs->redo && !d->field_edit_in_progress)
             {
-                if(SDL_GetModState() & KMOD_SHIFT)
+                if(SDL_GetModState() & SDL_KMOD_SHIFT)
                 {
                     while(d->usr_field_redo.size() > 0)
                     {
@@ -658,7 +658,7 @@ int qrs_input(game_t *g)
                     d->field_selection_vertex2_y = 19;
                 }
 
-                if(SDL_GetModState() & KMOD_SHIFT && cs->mouse.leftButton != Shiro::Mouse::Button::notPressed)
+                if(SDL_GetModState() & SDL_KMOD_SHIFT && cs->mouse.leftButton != Shiro::Mouse::Button::notPressed)
                 {
                     if(cs->mouse.leftButton == Shiro::Mouse::Button::pressedThisFrame)
                     {
@@ -923,7 +923,7 @@ int qrs_input(game_t *g)
                             {
                                 if(d->usr_field.getCell(i, static_cast<std::size_t>(j) + 4) != QRS_FIELD_W_LIMITER && c != QRS_PIECE_GEM)
                                 {
-                                    if(SDL_GetModState() & KMOD_SHIFT)
+                                    if(SDL_GetModState() & SDL_KMOD_SHIFT)
                                     {
                                         if(IS_STACK(d->usr_field.getCell(i, static_cast<std::size_t>(j) + 4)))
                                         {
@@ -945,7 +945,7 @@ int qrs_input(game_t *g)
                                 }
                                 else if(d->usr_field.getCell(i, static_cast<std::size_t>(j) + 4) > 0 && c == QRS_PIECE_GEM)
                                 {
-                                    if(SDL_GetModState() & KMOD_SHIFT)
+                                    if(SDL_GetModState() & SDL_KMOD_SHIFT)
                                     {
                                         if(IS_STACK(d->usr_field.getCell(i, static_cast<std::size_t>(j) + 4)))
                                         {
@@ -977,7 +977,7 @@ int qrs_input(game_t *g)
                     {
                         if(d->usr_field.getCell(cell_x, static_cast<std::size_t>(cell_y) + 4) != QRS_FIELD_W_LIMITER && c != QRS_PIECE_GEM)
                         {
-                            if(SDL_GetModState() & KMOD_SHIFT)
+                            if(SDL_GetModState() & SDL_KMOD_SHIFT)
                             {
                                 if(IS_STACK(d->usr_field.getCell(cell_x, static_cast<std::size_t>(cell_y) + 4)))
                                 {
@@ -999,7 +999,7 @@ int qrs_input(game_t *g)
                         }
                         else if(d->usr_field.getCell(cell_x, static_cast<std::size_t>(cell_y) + 4) > 0 && c == QRS_PIECE_GEM)
                         {
-                            if(SDL_GetModState() & KMOD_SHIFT)
+                            if(SDL_GetModState() & SDL_KMOD_SHIFT)
                             {
                                 if(IS_STACK(d->usr_field.getCell(cell_x, static_cast<std::size_t>(cell_y) + 4)))
                                 {
