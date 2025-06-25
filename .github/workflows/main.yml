@@ -18,12 +18,12 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Build dev shell environment
-        run: nix develop --command true
+        run: nix develop .#ci --command true
       
       - name: Configure and build
         run: |
-          nix develop --command cmake --preset linux-gcc-debug
-          nix develop --command cmake --build --preset linux-gcc-debug
+          nix develop .#ci --command cmake --preset linux-gcc-debug
+          nix develop .#ci --command cmake --build --preset linux-gcc-debug
 
     # name: linux-${{ matrix.compiler }}-${{ matrix.build-type }}
     # steps:
