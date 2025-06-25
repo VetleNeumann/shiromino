@@ -1,8 +1,10 @@
-#include "video/Screen.h"
-#include "Debug.h"
-#include "types.h"
-#include "SDL3/SDL.h"
+#include <cstdint>
 #include <iostream>
+
+#include "Debug.h"
+#include "SDL3/SDL.h"
+#include "video/Screen.h"
+
 
 Shiro::Screen::Screen(const std::string &name, const unsigned w, const unsigned h, const unsigned logicalW, const unsigned logicalH, const float render_scale)
     : name(name)
@@ -38,7 +40,7 @@ Shiro::Screen::~Screen()
 
 bool Shiro::Screen::init(const Settings &settings)
 {
-    u32 windowFlags = SDL_WINDOW_RESIZABLE;
+    std::uint32_t windowFlags = SDL_WINDOW_RESIZABLE;
     window = SDL_CreateWindow(name.c_str(), w, h, windowFlags);
     if(window == nullptr)
     {

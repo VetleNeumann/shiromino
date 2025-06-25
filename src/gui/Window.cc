@@ -87,7 +87,7 @@ void Window::draw()
     if(showTitleBar)
     {
         SDL_SetRenderDrawColor(guiSDLRenderer, rgba_R(rgbaTitleBar), rgba_G(rgbaTitleBar), rgba_B(rgbaTitleBar), rgba_A(rgbaTitleBar));
-        const SDL_FRect titleBarRect = {0, 0, destRect.w, titleBarHeight};
+        const SDL_FRect titleBarRect = {0, 0, destRect.w, static_cast<float>(titleBarHeight)};
         SDL_RenderFillRect(guiSDLRenderer, &titleBarRect);
 
         TextFormat fmt{};
@@ -229,7 +229,7 @@ void Window::handleSDLEvent(SDL_Event &sdlEvent, GUIPoint logicalMousePos)
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
             if(sdlEvent.button.button == SDL_BUTTON_LEFT || sdlEvent.button.button == SDL_BUTTON_RIGHT)
             {
-                GUIEvent mouseButtonDownEvent{mouse_clicked, x - destRect.x, y - destRect.y, sdlEvent.button.button};
+                GUIEvent mouseButtonDownEvent{mouse_clicked, static_cast<int>(x - destRect.x), static_cast<int>(y - destRect.y), sdlEvent.button.button};
                 GUIInteractable *e = getControlElementAt(x, y);
                 if(e)
                 {
@@ -276,7 +276,7 @@ void Window::handleSDLEvent(SDL_Event &sdlEvent, GUIPoint logicalMousePos)
         case SDL_EVENT_MOUSE_BUTTON_UP:
             if(sdlEvent.button.button == SDL_BUTTON_LEFT || sdlEvent.button.button == SDL_BUTTON_RIGHT)
             {
-                GUIEvent mouseButtonUpEvent{mouse_released, x - destRect.x, y - destRect.y, sdlEvent.button.button};
+                GUIEvent mouseButtonUpEvent{mouse_released, static_cast<int>(x - destRect.x), static_cast<int>(y - destRect.y), sdlEvent.button.button};
                 GUIInteractable *e = getControlElementAt(x, y);
                 if(e)
                 {
@@ -304,7 +304,7 @@ void Window::handleSDLEvent(SDL_Event &sdlEvent, GUIPoint logicalMousePos)
             if(sdlEvent.motion.state & SDL_BUTTON_LMASK || sdlEvent.motion.state & SDL_BUTTON_RMASK)
             {
                 Uint8 button = sdlEvent.motion.state & SDL_BUTTON_LMASK ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT;
-                GUIEvent mouseDraggedEvent{mouse_dragged, x - destRect.x, y - destRect.y, button};
+                GUIEvent mouseDraggedEvent{mouse_dragged, static_cast<int>(x - destRect.x), static_cast<int>(y - destRect.y), button};
                 GUIInteractable *e = getControlElementAt(x, y);
                 if(e)
                 {
@@ -332,7 +332,7 @@ void Window::handleSDLEvent(SDL_Event &sdlEvent, GUIPoint logicalMousePos)
 
                         if(selectedElement != NULL)
                         {
-                            GUIEvent mouseHoveredOffEvent{mouse_hovered_off, x - destRect.x, y - destRect.y, 0};
+                            GUIEvent mouseHoveredOffEvent{mouse_hovered_off, static_cast<int>(x - destRect.x), static_cast<int>(y - destRect.y), 0};
                             selectedElement->handleEvent(mouseHoveredOffEvent);
                             selectedElement->selected = false;
 
@@ -351,7 +351,7 @@ void Window::handleSDLEvent(SDL_Event &sdlEvent, GUIPoint logicalMousePos)
                         }
 
                         e->selected = true;
-                        GUIEvent mouseHoveredOntoEvent{mouse_hovered_onto, x - destRect.x, y - destRect.y, 0};
+                        GUIEvent mouseHoveredOntoEvent{mouse_hovered_onto, static_cast<int>(x - destRect.x), static_cast<int>(y - destRect.y), 0};
                         e->handleEvent(mouseHoveredOntoEvent);
 
                         if(interactionEventCallback)
@@ -360,7 +360,7 @@ void Window::handleSDLEvent(SDL_Event &sdlEvent, GUIPoint logicalMousePos)
                         }
                     }
 
-                    GUIEvent mouseMovedEvent{mouse_moved, x - destRect.x, y - destRect.y, 0};
+                    GUIEvent mouseMovedEvent{mouse_moved, static_cast<int>(x - destRect.x), static_cast<int>(y - destRect.y), 0};
                     e->handleEvent(mouseMovedEvent);
 
                     if(interactionEventCallback)
@@ -372,7 +372,7 @@ void Window::handleSDLEvent(SDL_Event &sdlEvent, GUIPoint logicalMousePos)
                 {
                     if(selectingByMouse && selectedElement != NULL)
                     {
-                        GUIEvent mouseHoveredOffEvent{mouse_hovered_off, x - destRect.x, y - destRect.y, 0};
+                        GUIEvent mouseHoveredOffEvent{mouse_hovered_off, static_cast<int>(x - destRect.x), static_cast<int>(y - destRect.y), 0};
                         selectedElement->handleEvent(mouseHoveredOffEvent);
                         selectedElement->selected = false;
 

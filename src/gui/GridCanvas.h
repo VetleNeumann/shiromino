@@ -1,19 +1,12 @@
 #pragma once
-
-#include "SDL3/SDL.h"
-#include "gui/GUI.h"
 #include <iostream>
 #include <string>
 
 #include "Grid.h"
+#include "SDL3/SDL.h"
+#include "gfx_helpers.h"
+#include "gui/GUI.h"
 
-struct paletteMapEntry
-{
-    paletteMapEntry(int mappedVal, bool isFlag) : mappedVal(mappedVal), isFlag(isFlag) {}
-
-    int mappedVal;
-    bool isFlag;
-};
 
 class GridCanvas : public GUIInteractable
 {

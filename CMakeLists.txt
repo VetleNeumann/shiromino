@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.31)
 project(shiromino
 	DESCRIPTION "A fast-paced puzzle game with roots in the arcade."
 	HOMEPAGE_URL "https://github.com/shiromino/shiromino"
@@ -58,120 +58,14 @@ target_include_directories(${GAME_EXECUTABLE} PRIVATE "${EXECUTABLE_DYNAMIC_HEAD
 #
 # Sources needed to build the game
 #
+file(GLOB_RECURSE GAME_SOURCES
+	src/*.cc
+	src/*.h
+)
+
 target_sources(${GAME_EXECUTABLE}
 	PRIVATE
-		src/asset/Asset.cc
-		src/asset/Asset.h
-		src/asset/Font.cc
-		src/asset/Font.h
-		src/asset/Image.cc
-		src/asset/Image.h
-		src/asset/Music.cc
-		src/asset/Music.h
-		src/asset/Sfx.cc
-		src/asset/Sfx.h
-		src/AssetStore.h
-		src/CoreState.h
-		src/Credits.cc
-		src/Credits.h
-		src/Debug.h
-		src/DisplayMode.h
-		src/Game.cc
-		src/Game.h
-		src/GameType.h
-		src/Grid.cc
-		src/Grid.h
-		src/input/ControllerBindings.cc
-		src/input/ControllerBindings.h
-		src/input/KeyBindings.cc
-		src/input/KeyBindings.h
-		src/input/KeyFlags.cc
-		src/input/KeyFlags.h
-		src/input/Mouse.cc
-		src/input/Mouse.h
-		src/main.cc
-		src/menu/ActionOption.h
-		src/menu/ElementType.h
-		src/menu/GameArguments.h
-		src/menu/GameMultiOption.h
-		src/menu/GameOption.h
-		src/menu/MetaGameOption.h
-		src/menu/MultiOption.h
-		src/menu/Option.cc
-		src/menu/Option.h
-		src/menu/TextOption.h
-		src/menu/ToggleOption.h
-		src/Delay.cc
-		src/Delay.h
-		src/Nanotime.cc
-		src/OS.cc
-		src/OS.h
-		src/PieceDefinition.cc
-		src/PieceDefinition.h
-		src/Player.h
-		src/QRS.cc
-		src/QRS0.h
-		src/QRS1.h
-		src/Records.cc
-		src/Records.h
-		src/RefreshRates.h
-		src/RotationTables.cc
-		src/RotationTables.h
-		src/SPM_Randomizer.cc
-		src/SPM_Randomizer.h
-		src/SPM_Spec.cc
-		src/SPM_Spec.h
-		src/Settings.cc
-		src/Settings.h
-		src/ShiroPhysoMino.cc
-		src/ShiroPhysoMino.h
-		src/TGM.h
-		src/Timer.cc
-		src/Timer.h
-		src/video/Animation.cc
-		src/video/Animation.h
-		src/video/Background.cc
-		src/video/Background.h
-		src/video/Gfx.cc
-		src/video/Gfx.h
-		src/video/MessageEntity.cc
-		src/video/MessageEntity.h
-		src/video/Render.cc
-		src/video/Render.h
-		src/video/Screen.cc
-		src/video/Screen.h
-		src/video/TextGraphic.cc
-		src/video/TextGraphic.h
-		src/core.cc
-		src/fonts.h
-		src/game_menu.cc
-		src/game_menu.h
-		src/game_qs.cc
-		src/game_qs.h
-		src/gfx_helpers.cc
-		src/gfx_helpers.h
-		src/gfx_menu.cc
-		src/gfx_menu.h
-		src/gfx_old.cc
-		src/gfx_old.h
-		src/gfx_qs.cc
-		src/gfx_qs.h
-		src/gfx_structures.h
-		src/gui/Button.cc
-		src/gui/GUI.cc
-		src/gui/GUI.h
-		src/gui/GridCanvas.cc
-		src/gui/GridCanvas.h
-		src/gui/ScreenManager.cc
-		src/gui/ScreenManager.h
-		src/gui/TextField.cc
-		src/gui/Window.cc
-		src/images.h
-		src/random.cc
-		src/random.h
-		src/replay.cc
-		src/replay.h
-		src/stringtools.h
+		${GAME_SOURCES}
 		third-party/PDINI.h
 )
 #
@@ -284,7 +178,8 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR CMAKE_CXX_COMPILER_ID STREQUAL GNU)
 	target_compile_options(${GAME_EXECUTABLE}
 		PRIVATE
 			-g
-			-O0
+			-O1
+			-Werror
 	)
 endif()
 

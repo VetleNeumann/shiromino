@@ -15,8 +15,8 @@ void gfx_drawCodedGrid(SDL_Renderer *renderer, Shiro::Grid *cells, SDL_Texture *
             int destX = position.x + (i * cellW);
             int destY = position.y + (j * cellH);
 
-            SDL_FRect src = {0, 0, cellW, cellH};
-            SDL_FRect dest = {destX, destY, cellW, cellH};
+            SDL_FRect src = make_frect(0, 0, cellW, cellH);
+            SDL_FRect dest = make_frect(destX, destY, cellW, cellH);
 
             if(!paletteValMap.empty())
             {

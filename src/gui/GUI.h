@@ -1,6 +1,5 @@
 #pragma once
 #include "SDL3/SDL.h"
-#include "types.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -13,7 +12,7 @@
 #include <vector>
 
 namespace Shiro::GUI {
-using rgba_t = Shiro::u32;
+using rgba_t = std::uint32_t;
 constexpr uint8_t TEXT_ALIGN_CENTER = 0x0002;
 constexpr uint8_t TEXT_OUTLINE = 0x0004;
 constexpr uint8_t TEXT_SHADOW = 0x0008;
@@ -22,9 +21,12 @@ constexpr uint8_t TEXT_ALIGN_RIGHT = 0x0020;
 constexpr rgba_t RGBA_DEFAULT = 0xFFFFFFFF;
 constexpr rgba_t RGBA_OUTLINE_DEFAULT = 0x000000FF;
 } // namespace Shiro::GUI
+
 extern SDL_Renderer *guiSDLRenderer;
 extern SDL_Texture *guiThemeTexture;
+
 bool initializeGUI(SDL_Renderer *, const char *);
+
 struct BitFont
 // sheets should be 32w x 4h characters in dimensions
 {
@@ -667,13 +669,13 @@ class GUIScreen : public Window
     std::vector<std::string> children;
 };
 
-inline Shiro::u8 rgba_R(Shiro::GUI::rgba_t rgba) { return (rgba & 0xFF000000) / 0x1000000; }
+inline std::uint8_t rgba_R(Shiro::GUI::rgba_t rgba) { return (rgba & 0xFF000000) / 0x1000000; }
 
-inline Shiro::u8 rgba_G(Shiro::GUI::rgba_t rgba) { return (rgba & 0x00FF0000) / 0x0010000; }
+inline std::uint8_t rgba_G(Shiro::GUI::rgba_t rgba) { return (rgba & 0x00FF0000) / 0x0010000; }
 
-inline Shiro::u8 rgba_B(Shiro::GUI::rgba_t rgba) { return (rgba & 0x0000FF00) / 0x0000100; }
+inline std::uint8_t rgba_B(Shiro::GUI::rgba_t rgba) { return (rgba & 0x0000FF00) / 0x0000100; }
 
-inline Shiro::u8 rgba_A(Shiro::GUI::rgba_t rgba) { return (rgba & 0x000000FF); }
+inline std::uint8_t rgba_A(Shiro::GUI::rgba_t rgba) { return (rgba & 0x000000FF); }
 
 inline void GUIElement::prepareRenderTarget(bool isFinalCopy)
 {
@@ -693,7 +695,7 @@ inline void setGUITextureRGBA(SDL_Texture *tex, Shiro::GUI::rgba_t rgba)
     SDL_SetTextureAlphaMod(tex, rgba_A(rgba));
 }
 
-void GUIDrawBorder(SDL_FRect &, int, Shiro::GUI::rgba_t);
+void GUIDrawBorder(SDL_FRect &, const float, Shiro::GUI::rgba_t);
 
 void generateGUITextPositionalValues(std::string &, TextFormat *, BitFont &, SDL_FRect &, std::vector<std::pair<int, int>> &, bool, bool);
 void generateGUITextPositionalValuesPartial(std::string &, unsigned int, unsigned int, TextFormat *, BitFont &, SDL_FRect &, std::vector<std::pair<int, int>> &,

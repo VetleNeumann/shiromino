@@ -1,12 +1,14 @@
-#include "GUI.h"
-#include "SDL3/SDL.h"
-#include "SDL3_image/SDL_image.h"
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
+
+#include "GUI.h"
+#include "SDL3/SDL.h"
+#include "SDL3_image/SDL_image.h"
+#include "gfx_helpers.h"
 
 SDL_Renderer *guiSDLRenderer = NULL;
 SDL_Texture *guiThemeTexture = NULL;
@@ -191,7 +193,7 @@ void GUIInteractable::handleEvent(GUIEvent &event)
     }
 }
 
-void GUIDrawBorder(SDL_FRect &rect, int width, Shiro::GUI::rgba_t rgba)
+void GUIDrawBorder(SDL_FRect &rect, float width, Shiro::GUI::rgba_t rgba)
 {
     if(width <= 0)
     {
@@ -371,8 +373,8 @@ void drawGUITextPartialPV(std::string text, unsigned int pos, unsigned int len, 
         setGUITextureRGBA(font.outlineSheet, fmt->rgbaOutline);
     }
 
-    SDL_FRect src = {0, 0, (int)font.charW, (int)font.charH};
-    SDL_FRect dest = {0, 0, (int)(fmt->sizeMult * (float)font.charW), (int)(fmt->sizeMult * (float)font.charH)};
+    SDL_FRect src = {0.0f, 0.0f, static_cast<float>(font.charW), static_cast<float>(font.charH)};
+    SDL_FRect dest = {0.0f, 0.0f, fmt->sizeMult * static_cast<float>(font.charW), fmt->sizeMult * static_cast<float>(font.charH)};
 
     bool using_target_tex = false;
 

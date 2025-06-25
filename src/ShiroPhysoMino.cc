@@ -1,12 +1,15 @@
-#include "ShiroPhysoMino.h"
-#include "CoreState.h"
-#include "gui/GUI.h"
-#include "video/Render.h"
-#include "SPM_Spec.h"
-#include "SPM_Randomizer.h"
 #include <iostream>
 #include <memory>
 #include <vector>
+
+#include "ShiroPhysoMino.h"
+#include "CoreState.h"
+#include "SPM_Randomizer.h"
+#include "SPM_Spec.h"
+#include "gui/GUI.h"
+#include "video/Render.h"
+#include "gfx_helpers.h"
+
 
 int TestSPM::init()
 {
@@ -31,7 +34,8 @@ int TestSPM::init()
     return 0;
 }
 
-TestSPM::~TestSPM() {
+TestSPM::~TestSPM()
+{
     delete field;
     delete timer;
     delete rep;
@@ -231,10 +235,10 @@ int TestSPM::draw()
     int blockW = 16;
     int blockH = 16;
 
-    SDL_FRect dest = {fieldPos.x, fieldPos.y, blockW, blockH};
+    SDL_FRect dest = make_frect(fieldPos.x, fieldPos.y, blockW, blockH);
     SDL_SetRenderDrawColor(cs.screen.renderer, 255, 255, 255, 180);
 
-    SDL_FRect fieldRect = {fieldPos.x, fieldPos.y, blockW * static_cast<int>(field->getWidth()), blockH * spec->visualFieldH};
+    SDL_FRect fieldRect = make_frect(fieldPos.x, fieldPos.y, blockW * static_cast<int>(field->getWidth()), blockH * spec->visualFieldH);
     GUIDrawBorder(fieldRect, 1, Shiro::GUI::RGBA_DEFAULT);
 
     for(std::size_t i = 0; i < field->getWidth(); i++)
@@ -245,7 +249,8 @@ int TestSPM::draw()
             dest.x = fieldPos.x + (i * blockW);
             dest.y = fieldPos.y + (j * blockH);
 
-            if (field->getCell(i, gridY) > 0) {
+            if(field->getCell(i, gridY) > 0)
+            {
                 Shiro::RenderFillRect(cs.screen, &dest);
             }
         }
@@ -263,7 +268,8 @@ int TestSPM::draw()
                 int gridX = i + player.mino->position.x;
                 int gridY = j + player.mino->position.y;
 
-                if (gridY >= (int(field->getHeight()) - spec->visualFieldH) && m.getCell(i, j)) {
+                if(gridY >= (int(field->getHeight()) - spec->visualFieldH) && m.getCell(i, j))
+                {
                     dest.x = fieldPos.x + (gridX * blockW);
                     dest.y = fieldPos.y - ((static_cast<int>(field->getHeight()) - spec->visualFieldH) * blockH) + (gridY * blockH);
                     dest.y += (blockH * player.mino->position.subY) / SPM_SUBUNIT_SCALE;
@@ -288,7 +294,8 @@ int TestSPM::draw()
             {
                 for(std::size_t j = 0; j < m.getHeight(); j++)
                 {
-                    if (m.getCell(i, j)) {
+                    if(m.getCell(i, j))
+                    {
                         dest.x = fieldPos.x + (3 * 16) + (n * 5 * 16) + (i * 16);
                         dest.y = fieldPos.y - 54 + (j * 16);
                         Shiro::RenderFillRect(cs.screen, &dest);
@@ -305,7 +312,7 @@ int TestSPM::draw()
     return 0;
 }
 
-bool TestSPM::spawnDelayExpired(SPM_Player& p)
+bool TestSPM::spawnDelayExpired(SPM_Player &p)
 {
     p.counters.lockDelay = 0;
 
@@ -351,7 +358,7 @@ bool TestSPM::spawnDelayExpired(SPM_Player& p)
     return true;
 }
 
-bool TestSPM::lockDelayExpired(SPM_Player& p)
+bool TestSPM::lockDelayExpired(SPM_Player &p)
 {
     spec->imprintMino(field, *p.mino);
     p.mino->physicState = spm_physic_locked;
@@ -372,7 +379,7 @@ bool TestSPM::lockDelayExpired(SPM_Player& p)
     return true;
 }
 
-bool TestSPM::lineClearExpired(SPM_Player& p)
+bool TestSPM::lineClearExpired(SPM_Player &p)
 {
     p.playPhase = spm_spawn_delay;
     p.counters.spawnDelayExpirePoint = p.timings.lineAre;
@@ -386,7 +393,7 @@ bool TestSPM::lineClearExpired(SPM_Player& p)
     return true;
 }
 
-bool TestSPM::initNextMino(SPM_Player& p)
+bool TestSPM::initNextMino(SPM_Player &p)
 {
     SPM_minoID t = MINO_ID_INVALID;
 
@@ -426,17 +433,17 @@ bool TestSPM::initNextMino(SPM_Player& p)
     }
 
     if(!p.previews.empty() && p.previews[0])
-    {/*
-        t = q->previews[0]->qrs_id;
+    { /*
+         t = q->previews[0]->qrs_id;
 
-        if(t != PIECE_ID_INVALID)
-        {
-            int ts = t;
-            if(ts >= 18)
-                ts -= 18;
-            struct sfx *sfx = &cs->assets->piece0 + (ts % 7);
-            sfx_play(sfx);
-        }*/
+         if(t != PIECE_ID_INVALID)
+         {
+             int ts = t;
+             if(ts >= 18)
+                 ts -= 18;
+             struct sfx *sfx = &cs->assets->piece0 + (ts % 7);
+             sfx_play(sfx);
+         }*/
     }
 
     if(p.mino == NULL)

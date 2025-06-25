@@ -1,9 +1,11 @@
-#include "GridCanvas.h"
-#include "SDL3/SDL.h"
-#include "gui/GUI.h"
 #include <functional>
 #include <memory>
 #include <utility>
+
+#include "GridCanvas.h"
+#include "SDL3/SDL.h"
+#include "gfx_helpers.h"
+#include "gui/GUI.h"
 
 GridCanvas::GridCanvas(int ID, Shiro::Grid *cells, BindableInt &paletteVar, SDL_Texture *paletteTex, unsigned int cellW, unsigned int cellH,
                        SDL_FRect relativeDestRect)
@@ -65,8 +67,8 @@ void GridCanvas::draw()
             int destX = relativeDestRect.x + (i * cellW);
             int destY = relativeDestRect.y + (j * cellH);
 
-            auto src = SDL_FRect{0, 0, (int)cellW, (int)cellH};
-            const auto dest = SDL_FRect{(int)destX, (int)destY, (int)cellW, (int)cellH};
+            auto src = make_frect(0, 0, cellW, cellH);
+            const auto dest = make_frect(destX, destY, cellW, cellH);
 
             if(!paletteValMap.empty())
             {
@@ -124,7 +126,7 @@ void GridCanvas::draw()
         Shiro::GridRect rect = {lesserX, lesserY, static_cast<std::size_t>(width), static_cast<std::size_t>(height)};
 
         const auto selectionRect = SDL_FRect{
-            relativeDestRect.x + (rect.x * (int)cellW), relativeDestRect.y + (rect.y * (int)cellH), (int)(rect.width * cellW), (int)(rect.height * cellH)};
+            relativeDestRect.x + (rect.x * (float)cellW), relativeDestRect.y + (rect.y * (float)cellH), rect.width * (float)cellW, rect.height * (float)cellH};
 
         Shiro::GUI::rgba_t v = 0x9090FF9F;
 
@@ -138,7 +140,7 @@ void GridCanvas::draw()
         int cursorX = relativeDestRect.x + (cellUnderMouse.x * cellW);
         int cursorY = relativeDestRect.y + (cellUnderMouse.y * cellH);
 
-        const auto cursorRect = SDL_FRect{cursorX, cursorY, (int)cellW, (int)cellH};
+        const SDL_FRect cursorRect = make_frect(cursorX, cursorY, (int)cellW, (int)cellH);
 
         Shiro::GUI::rgba_t v = 0xEFEFEF9F;
 

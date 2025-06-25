@@ -1,19 +1,20 @@
 // TODO: Refactor the asset system to be more portable and implement Gfx code to have the ability to change the back end of graphic subclasses.
-#include "video/Animation.h"
+#include <cstdint>
+
 #include "asset/Image.h"
-#include "types.h"
+#include "gfx_helpers.h"
+#include "video/Animation.h"
 #include "video/Render.h"
 
-
 namespace Shiro {
-AnimationGraphic::AnimationGraphic(const Screen &screen, SDL_Texture *const frame, const int x, const int y, const u32 rgbaMod)
+AnimationGraphic::AnimationGraphic(const Screen &screen, SDL_Texture *const frame, const int x, const int y, const std::uint32_t rgbaMod)
     : screen(screen), frame(frame), x(x), y(y), rgbaMod(rgbaMod)
 {
 }
 
 void AnimationGraphic::draw() const
 {
-    auto dest = SDL_FRect{ x, y, 0, 0 };
+    SDL_FRect dest = make_frect(x, y, 0, 0);
     SDL_GetTextureSize(frame, &dest.w, &dest.h);
 
     SDL_SetTextureColorMod(frame, R(rgbaMod), G(rgbaMod), B(rgbaMod));
@@ -24,7 +25,7 @@ void AnimationGraphic::draw() const
 }
 
 AnimationEntity::AnimationEntity(const Screen &screen, AssetManager &assetMgr, const std::filesystem::path &frames, const size_t layerNum, const int x,
-                                 const int y, const std::size_t numFrames, const std::size_t frameMultiplier, const u32 rgbaMod)
+                                 const int y, const std::size_t numFrames, const std::size_t frameMultiplier, const std::uint32_t rgbaMod)
     : assetMgr(assetMgr)
     , frames(frames)
     , layerNum(layerNum)

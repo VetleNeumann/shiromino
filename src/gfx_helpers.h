@@ -2,9 +2,18 @@
 #include "Grid.h"
 #include "SDL3/SDL.h"
 #include <vector>
-struct paletteMapEntry {
+
+struct paletteMapEntry
+{
     paletteMapEntry(int mappedVal, bool isFlag) : mappedVal(mappedVal), isFlag(isFlag) {}
     int mappedVal;
     bool isFlag;
 };
-void gfx_drawCodedGrid(SDL_Renderer *renderer, Shiro::Grid *cells, SDL_Texture *paletteTex, SDL_Point position, int cellW, int cellH, std::vector<paletteMapEntry>& paletteValMap);
+
+void gfx_drawCodedGrid(SDL_Renderer *renderer, Shiro::Grid *cells, SDL_Texture *paletteTex, SDL_Point position, int cellW, int cellH,
+                       std::vector<paletteMapEntry> &paletteValMap);
+
+constexpr SDL_FRect make_frect(int x, int y, int w, int h)
+{
+    return SDL_FRect{static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h)};
+}

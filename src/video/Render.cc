@@ -1,7 +1,6 @@
 #include "video/Render.h"
+#include "gfx_helpers.h"
 #include "video/Screen.h"
-
-using namespace Shiro;
 
 namespace Shiro {
 int RenderCopy(const Screen &screen, SDL_Texture *tex, const SDL_FRect *srcrect, SDL_FRect *dstrect)
@@ -37,7 +36,7 @@ int RenderCopy(const Screen &screen, SDL_Texture *tex, const SDL_FRect *srcrect,
 
     if(dstrect == nullptr)
     {
-        SDL_FRect rect = {screen.renderAreaX, screen.renderAreaY, screen.renderAreaW, screen.renderAreaH};
+        SDL_FRect rect = make_frect(screen.renderAreaX, screen.renderAreaY, screen.renderAreaW, screen.renderAreaH);
 
         SDL_SetRenderScale(screen.renderer, 1.0, 1.0);
         int rc = SDL_RenderTexture(screen.renderer, tex, srcrect, &rect);
@@ -89,7 +88,7 @@ int RenderCopyOuter(const Screen &screen, SDL_Texture *tex, const SDL_FRect *src
 
     if(dstrect == nullptr)
     {
-        SDL_FRect rect = {screen.renderAreaX, screen.renderAreaY, screen.renderAreaW, screen.renderAreaH};
+        SDL_FRect rect = make_frect(screen.renderAreaX, screen.renderAreaY, screen.renderAreaW, screen.renderAreaH);
 
         SDL_SetRenderScale(screen.renderer, 1.0, 1.0);
         int rc = SDL_RenderTexture(screen.renderer, tex, srcrect, &rect);
@@ -177,7 +176,7 @@ int RenderFillRect(const Screen &screen, SDL_FRect *rect)
 
     if(rect == nullptr)
     {
-        SDL_FRect rect_ = {screen.renderAreaX, screen.renderAreaY, screen.renderAreaW, screen.renderAreaH};
+        SDL_FRect rect_ = make_frect(screen.renderAreaX, screen.renderAreaY, screen.renderAreaW, screen.renderAreaH);
 
         SDL_SetRenderScale(screen.renderer, 1.0, 1.0);
         int rc = SDL_RenderFillRect(screen.renderer, &rect_);
@@ -229,7 +228,7 @@ int RenderFillRectOuter(const Screen &screen, SDL_FRect *rect, Render::Alignment
 
     if(rect == nullptr)
     {
-        SDL_FRect rect_ = {screen.renderAreaX, screen.renderAreaY, screen.renderAreaW, screen.renderAreaH};
+        SDL_FRect rect_ = make_frect(screen.renderAreaX, screen.renderAreaY, screen.renderAreaW, screen.renderAreaH);
 
         SDL_SetRenderScale(screen.renderer, 1.0, 1.0);
         int rc = SDL_RenderFillRect(screen.renderer, &rect_);

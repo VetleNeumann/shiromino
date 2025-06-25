@@ -1,36 +1,40 @@
-#include "CoreState.h"
-#include "input/KeyFlags.h"
-#include "game_qs.h"
-#include "video/Render.h"
-#include "gfx_old.h"
-#include "gfx_structures.h"
-#include "Grid.h"
-#include "PieceDefinition.h"
-#include "QRS0.h"
-#include "stringtools.h"
-#include "Timer.h"
-#include "types.h"
 #include <cmath>
 #include <filesystem>
 #include <iostream>
-#include "SDL3/SDL.h"
-#include "SDL3_image/SDL_image.h"
 #include <string>
 #include <vector>
 
-bool img_load(gfx_image *img, std::filesystem::path&& pathWithoutExtension, CoreState *cs) {
+#include "CoreState.h"
+#include "Grid.h"
+#include "PieceDefinition.h"
+#include "QRS0.h"
+#include "SDL3/SDL.h"
+#include "SDL3_image/SDL_image.h"
+#include "Timer.h"
+#include "game_qs.h"
+#include "gfx_helpers.h"
+#include "gfx_old.h"
+#include "gfx_structures.h"
+#include "input/KeyFlags.h"
+#include "stringtools.h"
+#include "video/Render.h"
+
+bool img_load(gfx_image *img, std::filesystem::path &&pathWithoutExtension, CoreState *cs)
+{
     img->tex = NULL;
 
     SDL_Surface *s = NULL;
 
-    std::filesystem::path& imagePath = pathWithoutExtension.concat(".png");
+    std::filesystem::path &imagePath = pathWithoutExtension.concat(".png");
     s = IMG_Load(imagePath.string().c_str());
 
-    if(!s) {
+    if(!s)
+    {
         s = IMG_Load(imagePath.replace_extension(".jpg").string().c_str());
     }
 
-    if(s) {
+    if(s)
+    {
         img->tex = SDL_CreateTextureFromSurface(cs->screen.renderer, s);
         SDL_DestroySurface(s);
     }
@@ -38,8 +42,10 @@ bool img_load(gfx_image *img, std::filesystem::path&& pathWithoutExtension, Core
     return img->tex != NULL;
 }
 
-void img_destroy(gfx_image *img) {
-    if (img->tex) {
+void img_destroy(gfx_image *img)
+{
+    if(img->tex)
+    {
         SDL_DestroyTexture(img->tex);
         img->tex = nullptr;
     }
@@ -51,7 +57,7 @@ png_monofont *monofont_thin = NULL;
 png_monofont *monofont_square = NULL;
 png_monofont *monofont_fixedsys = NULL;
 
-struct text_formatting text_fmt_create(unsigned int flags, Shiro::u32 rgba, Shiro::u32 outline_rgba)
+struct text_formatting text_fmt_create(unsigned int flags, std::uint32_t rgba, std::uint32_t outline_rgba)
 {
     struct text_formatting fmt;
 
@@ -81,13 +87,7 @@ int gfx_init(CoreState *cs)
     monofont_thin = (png_monofont *)malloc(sizeof(png_monofont));
     monofont_square = (png_monofont *)malloc(sizeof(png_monofont));
     monofont_fixedsys = (png_monofont *)malloc(sizeof(png_monofont));
-    assert(
-        monofont_tiny != nullptr &&
-        monofont_small != nullptr &&
-        monofont_thin != nullptr &&
-        monofont_square != nullptr &&
-        monofont_fixedsys != nullptr
-    );
+    assert(monofont_tiny != nullptr && monofont_small != nullptr && monofont_thin != nullptr && monofont_square != nullptr && monofont_fixedsys != nullptr);
 
     monofont_tiny->sheet = cs->assets->font_tiny.tex;
     monofont_tiny->outline_sheet = NULL;
@@ -128,8 +128,8 @@ void gfx_quit(CoreState *cs)
     free(monofont_fixedsys);
 }
 
-int gfx_createbutton(CoreState *cs, const char *text, int x, int y, unsigned int flags, int (*action)(CoreState *, void *), int (*deactivate_check)(CoreState *),
-                     void *data, Shiro::u32 rgba)
+int gfx_createbutton(CoreState *cs, const char *text, int x, int y, unsigned int flags, int (*action)(CoreState *, void *),
+                     int (*deactivate_check)(CoreState *), void *data, std::uint32_t rgba)
 {
     if(!text)
         return -1;
@@ -161,22 +161,14 @@ int gfx_drawbuttons(CoreState *cs, int type)
         return 0;
 
     SDL_Texture *font = cs->assets->font.tex;
-    SDL_FRect src = { 0, 0, 6, 28 };
-    SDL_FRect dest = { 0, 0, 6, 28 };
+    SDL_FRect src = {0, 0, 6, 28};
+    SDL_FRect dest = {0, 0, 6, 28};
 
-    struct text_formatting fmt = {
-        RGBA_DEFAULT,
-        RGBA_OUTLINE_DEFAULT,
-        true,
-        false,
-        1.0,
-        1.0,
-        ALIGN_LEFT,
-        0
-    };
+    struct text_formatting fmt = {RGBA_DEFAULT, RGBA_OUTLINE_DEFAULT, true, false, 1.0, 1.0, ALIGN_LEFT, 0};
 
-    for (auto it = cs->gfx_buttons.begin(); it != cs->gfx_buttons.end(); it++) {
-        gfx_button& b = *it;
+    for(auto it = cs->gfx_buttons.begin(); it != cs->gfx_buttons.end(); it++)
+    {
+        gfx_button &b = *it;
 
         if(type == EMERGENCY_OVERRIDE && !(b.flags & BUTTON_EMERGENCY))
             continue;
@@ -218,7 +210,7 @@ int gfx_drawbuttons(CoreState *cs, int type)
         src.w = 16;
         dest.w = 16;
 
-        for (decltype(b.text)::size_type j = 0; j < b.text.size(); j++)
+        for(decltype(b.text)::size_type j = 0; j < b.text.size(); j++)
         {
             if(j)
                 dest.x += 16;
@@ -252,7 +244,7 @@ int gfx_drawbuttons(CoreState *cs, int type)
         gfx_drawtext(cs, b.text, b.x + 6, b.y + 6, monofont_square, &fmt);
     }
 
-    //cs->gfx_buttons.clear();
+    // cs->gfx_buttons.clear();
 
     return 0;
 }
@@ -267,9 +259,9 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
 
     SDL_SetTextureColorMod(blocks, 220, 220, 220);
 
-    SDL_FRect tdest = { x, y - 48, 274, 416 };
-    SDL_FRect src = { 0, 0, 256, 256 };
-    SDL_FRect dest = { 0, 0, 16, 16 };
+    SDL_FRect tdest = make_frect(x, y - 48, 274, 416);
+    SDL_FRect src = make_frect(0, 0, 256, 256);
+    SDL_FRect dest = make_frect(0, 0, 16, 16);
 
     qrsdata *q = (qrsdata *)cs->p1game->data;
     int use_deltas = 0;
@@ -327,8 +319,8 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
 
     if((flags & DRAWFIELD_GRID) && !(flags & DRAWFIELD_BIG))
     {
-        SDL_FRect gridSrc = { 6 * 256, 6 * 256, 256, 256 };
-        SDL_FRect gridDest = { 0, 0, 16, 16 };
+        SDL_FRect gridSrc = {6 * 256, 6 * 256, 256, 256};
+        SDL_FRect gridDest = {0, 0, 16, 16};
 
         for(i = 0; i < logicalW; i++)
         {
@@ -356,11 +348,11 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
 
     if(q->state_flags & GAMESTATE_CREDITS && q->credits_tex)
     {
-        SDL_FRect creditsViewport = { 0, 0, 160, 320 };
-        SDL_FRect creditsDest = { x + 32, y + 32, 160, 320 };
+        SDL_FRect creditsViewport = make_frect(0, 0, 160, 320);
+        SDL_FRect creditsDest = make_frect(x + 32, y + 32, 160, 320);
 
         int creditsTime = q->credit_roll_length - q->credit_roll_counter;
-        //creditsTime = cs->p1game->frame_counter;
+        // creditsTime = cs->p1game->frame_counter;
 
         float scrollTimeRatio = float(creditsTime) / float(q->credit_roll_length - (5 * 60));
 
@@ -383,8 +375,8 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
             if(creditsViewport.y + 160 > q->credits_tex_height)
             {
                 SDL_Texture *titleKanji = Shiro::ImageAsset::get(cs->assetMgr, "title_kanji").getTexture();
-                SDL_FRect titleViewport = { 0, 0, 3200, 1600 };
-                SDL_FRect titleDest = { x + 32 + (5 * 16) - 60, y + 32 + (10 * 16) - 30, 120, 60 };
+                SDL_FRect titleViewport = make_frect(0, 0, 3200, 1600);
+                SDL_FRect titleDest = make_frect(x + 32 + (5 * 16) - 60, y + 32 + (10 * 16) - 30, 120, 60);
 
                 SDL_SetTextureColorMod(titleKanji, 0x20, 0x20, 0xFF);
 
@@ -439,8 +431,7 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
 
             blockAlpha = 0xFF;
 
-            if(((q->state_flags & (GAMESTATE_TOPOUT_ANIM | GAMESTATE_SOFT_CREDITS_TOPOUT)) && q->topped_out) ||
-                q->state_flags & GAMESTATE_CREDITS_TOPOUT_ANIM)
+            if(((q->state_flags & (GAMESTATE_TOPOUT_ANIM | GAMESTATE_SOFT_CREDITS_TOPOUT)) && q->topped_out) || q->state_flags & GAMESTATE_CREDITS_TOPOUT_ANIM)
             {
                 int row_ = (21 - (j - QRS_FIELD_H + 20)) * 6;
 
@@ -473,7 +464,8 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
             }
 
             c = field->getCell(i, j);
-            if(c == GRID_OOB) {
+            if(c == GRID_OOB)
+            {
                 return 1;
             }
 
@@ -489,9 +481,11 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
                     src.y = 6 * 256;
                     if(!(IS_INBOUNDS(field->getCell(static_cast<std::size_t>(i) - 1, j))) && !(IS_INBOUNDS(field->getCell(static_cast<std::size_t>(i) + 1, j))))
                         src.x = 1 * 256;
-                    else if((IS_INBOUNDS(field->getCell(static_cast<std::size_t>(i) - 1, j))) && !(IS_INBOUNDS(field->getCell(static_cast<std::size_t>(i) + 1, j))))
+                    else if((IS_INBOUNDS(field->getCell(static_cast<std::size_t>(i) - 1, j))) &&
+                            !(IS_INBOUNDS(field->getCell(static_cast<std::size_t>(i) + 1, j))))
                         src.x = 2 * 256;
-                    else if(!(IS_INBOUNDS(field->getCell(static_cast<std::size_t>(i) - 1, j))) && (IS_INBOUNDS(field->getCell(static_cast<std::size_t>(i) + 1, j))))
+                    else if(!(IS_INBOUNDS(field->getCell(static_cast<std::size_t>(i) - 1, j))) &&
+                            (IS_INBOUNDS(field->getCell(static_cast<std::size_t>(i) + 1, j))))
                         src.x = 3 * 256;
                 }
                 else if(c & QRS_PIECE_BRACKETS)
@@ -566,7 +560,8 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
                             SDL_SetTextureAlphaMod(blocks, 255);
                         }
                     }
-                    else {
+                    else
+                    {
                         Shiro::RenderCopy(cs->screen, blocks, &src, &dest);
                     }
 
@@ -579,7 +574,7 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
                         SDL_GetRenderDrawColor(cs->screen.renderer, &r_, &g_, &b_, &a_);
                         SDL_SetRenderDrawColor(cs->screen.renderer, 0xFF, 0xFF, 0xFF, 0x8C);
 
-                        SDL_FRect outlineRect = { dest.x, dest.y, cellSize, 2 };
+                        SDL_FRect outlineRect = make_frect(dest.x, dest.y, cellSize, 2);
 
                         c = field->getCell(i, static_cast<std::size_t>(j) - 1); // above
                         if(!IS_STACK(c) && c != QRS_FIELD_W_LIMITER && c != GRID_OOB)
@@ -658,7 +653,7 @@ int gfx_drawqrsfield(CoreState *cs, Shiro::Grid *field, unsigned int mode, unsig
     return 0;
 }
 
-int gfx_drawkeys(CoreState *cs, Shiro::KeyFlags *k, int x, int y, Shiro::u32 rgba)
+int gfx_drawkeys(CoreState *cs, Shiro::KeyFlags *k, int x, int y, std::uint32_t rgba)
 {
     if(!cs)
         return -1;
@@ -667,24 +662,15 @@ int gfx_drawkeys(CoreState *cs, Shiro::KeyFlags *k, int x, int y, Shiro::u32 rgb
     SDL_SetTextureColorMod(font, R(rgba), G(rgba), B(rgba));
     SDL_SetTextureAlphaMod(font, A(rgba));
 
-    SDL_FRect src = { 0, 80, 16, 16 };
-    SDL_FRect dest = { 0, y, 16, 16 };
+    SDL_FRect src = make_frect(0, 80, 16, 16);
+    SDL_FRect dest = make_frect(0, y, 16, 16);
 
     std::string text_a = "A";
     std::string text_b = "B";
     std::string text_c = "C";
     std::string text_d = "D";
 
-    struct text_formatting fmt = {
-        RGBA_DEFAULT,
-        RGBA_OUTLINE_DEFAULT,
-        true,
-        false,
-        1.0,
-        1.0,
-        ALIGN_LEFT,
-        0
-    };
+    struct text_formatting fmt = {RGBA_DEFAULT, RGBA_OUTLINE_DEFAULT, true, false, 1.0, 1.0, ALIGN_LEFT, 0};
 
     if(k->left)
     {
@@ -787,16 +773,7 @@ int gfx_drawtext_partial(CoreState *cs, std::string text, int pos, std::size_t l
     if(!font)
         font = monofont_fixedsys;
 
-    struct text_formatting fmt_ = {
-        RGBA_DEFAULT,
-        RGBA_OUTLINE_DEFAULT,
-        true,
-        false,
-        1.0,
-        1.0,
-        ALIGN_LEFT,
-        0
-    };
+    struct text_formatting fmt_ = {RGBA_DEFAULT, RGBA_OUTLINE_DEFAULT, true, false, 1.0, 1.0, ALIGN_LEFT, 0};
 
     if(!fmt)
         fmt = &fmt_;
@@ -810,8 +787,8 @@ int gfx_drawtext_partial(CoreState *cs, std::string text, int pos, std::size_t l
         SDL_SetTextureAlphaMod(font->outline_sheet, A(fmt->outline_rgba));
     }
 
-    SDL_FRect src = { 0, 0, (int) font->char_w, (int) font->char_h };
-    SDL_FRect dest = { x, y, (int) (fmt->size_multiplier * (float) font->char_w), (int) (fmt->size_multiplier * (float) font->char_h) };
+    SDL_FRect src = make_frect(0, 0, (int)font->char_w, (int)font->char_h);
+    SDL_FRect dest = make_frect(x, y, (int)(fmt->size_multiplier * (float)font->char_w), (int)(fmt->size_multiplier * (float)font->char_h));
 
     std::size_t i = 0;
 
@@ -853,7 +830,7 @@ int gfx_drawtext_partial(CoreState *cs, std::string text, int pos, std::size_t l
                     /*if (fmt->wrap_length < lines[0].size() - last_wrap_line_pos)
                         dest.x = x;
                     else*/
-                        dest.x = x - static_cast<int>((fmt->size_multiplier * (float)font->char_w / 2.0f) * float(thisLineLength));
+                    dest.x = x - static_cast<int>((fmt->size_multiplier * (float)font->char_w / 2.0f) * float(thisLineLength));
 
                     break;
             }
@@ -864,7 +841,7 @@ int gfx_drawtext_partial(CoreState *cs, std::string text, int pos, std::size_t l
             if(text[i] == '\n')
             {
                 linefeeds++;
-                //last_wrap_line_pos = i - last_wrap_pos + last_wrap_line_pos;
+                // last_wrap_line_pos = i - last_wrap_pos + last_wrap_line_pos;
                 last_wrap_line_pos = 0;
                 last_wrap_pos = i;
             }
@@ -891,7 +868,7 @@ int gfx_drawtext_partial(CoreState *cs, std::string text, int pos, std::size_t l
                     /*if(fmt->wrap_length < lines[linefeeds].size() - last_wrap_line_pos)
                         dest.x = x;
                     else*/
-                        dest.x = x - static_cast<int>((fmt->size_multiplier * (float)font->char_w / 2.0f) * float(thisLineLength));
+                    dest.x = x - static_cast<int>((fmt->size_multiplier * (float)font->char_w / 2.0f) * float(thisLineLength));
 
                     break;
             }
@@ -987,7 +964,8 @@ int gfx_drawtext_partial(CoreState *cs, std::string text, int pos, std::size_t l
     return 0;
 }
 
-int gfx_drawpiece(CoreState *cs, Shiro::Grid *field, int field_x, int field_y, Shiro::PieceDefinition& pieceDefinition, unsigned int flags, int orient, int x, int y, Shiro::u32 rgba)
+int gfx_drawpiece(CoreState *cs, Shiro::Grid *field, int field_x, int field_y, Shiro::PieceDefinition &pieceDefinition, unsigned int flags, int orient, int x,
+                  int y, std::uint32_t rgba)
 {
     if(!cs)
         return -1;
@@ -1010,8 +988,8 @@ int gfx_drawpiece(CoreState *cs, Shiro::Grid *field, int field_x, int field_y, S
     SDL_Texture *blocks;
     blocks = Shiro::ImageAsset::get(cs->assetMgr, "pieces_256x256").getTexture();
     int size = (flags & DRAWPIECE_SMALL) ? 8 : (flags & DRAWPIECE_BIG ? 32 : 16);
-    SDL_FRect src = { 0, 0, 256, 256 };
-    SDL_FRect dest = { 0, 0, size, size };
+    SDL_FRect src = {0, 0, 256, 256};
+    SDL_FRect dest = make_frect(0, 0, size, size);
 
     std::string piece_str = "A";
     piece_str[0] = pieceDefinition.qrsID + 'A';
@@ -1092,7 +1070,7 @@ int gfx_drawpiece(CoreState *cs, Shiro::Grid *field, int field_x, int field_y, S
                             SDL_GetRenderDrawColor(cs->screen.renderer, &r_, &g_, &b_, &a_);
                             SDL_SetRenderDrawColor(cs->screen.renderer, 0xFF, 0xFF, 0xFF, 0x8C);
 
-                            SDL_FRect outlineRect = { dest.x, dest.y, size, 2 };
+                            SDL_FRect outlineRect = make_frect(dest.x, dest.y, size, 2);
 
                             c = field->getCell(i, static_cast<std::size_t>(j) - 1); // above
                             if(!IS_STACK(c) && c != QRS_FIELD_W_LIMITER && c != GRID_OOB)
@@ -1142,7 +1120,8 @@ int gfx_drawpiece(CoreState *cs, Shiro::Grid *field, int field_x, int field_y, S
                         }
                     }
                 }
-                else {
+                else
+                {
                     Shiro::RenderCopy(cs->screen, blocks, &src, &dest);
                 }
             }
@@ -1155,14 +1134,14 @@ int gfx_drawpiece(CoreState *cs, Shiro::Grid *field, int field_x, int field_y, S
     return 0;
 }
 
-int gfx_drawtimer(CoreState *cs, Shiro::Timer *t, int x, Shiro::u32 rgba)
+int gfx_drawtimer(CoreState *cs, Shiro::Timer *t, int x, std::uint32_t rgba)
 {
     SDL_Texture *font = cs->assets->font.tex;
     qrsdata *q = (qrsdata *)cs->p1game->data;
     int y = q->field_y;
 
-    SDL_FRect src = { 0, 96, 20, 32 };
-    SDL_FRect dest = { x, 26 * 16 + 8 - QRS_FIELD_Y + y, 20, 32 };
+    SDL_FRect src = {0, 96, 20, 32};
+    SDL_FRect dest = make_frect(x, 26 * 16 + 8 - QRS_FIELD_Y + y, 20, 32);
 
     uint64_t min = t->min();
     uint64_t sec = t->sec() % 60;

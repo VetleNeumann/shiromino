@@ -1,35 +1,34 @@
 #pragma once
-#include "types.h"
-#include "video/Screen.h"
+#include <cstdint>
+
 #include "SDL3/SDL.h"
+#include "video/Screen.h"
+
 
 namespace Shiro {
-    struct Mouse {
-        Mouse();
+struct Mouse
+{
+    Mouse();
 
-        bool operator==(const Mouse& cmp) const;
-        bool operator!=(const Mouse& cmp) const;
+    bool operator==(const Mouse &cmp) const;
+    bool operator!=(const Mouse &cmp) const;
 
-        enum class Button {
-            notPressed,
-            pressed,
-            pressedThisFrame
-        };
+    enum class Button { notPressed, pressed, pressedThisFrame };
 
-        // TODO: Consider changing how windowW/windowH are passed in.
-        void updateButtonState();
-        void updateLogicalPosition(const Screen& screen);
+    // TODO: Consider changing how windowW/windowH are passed in.
+    void updateButtonState();
+    void updateLogicalPosition(const Screen &screen);
 
-        float x;
-        float y;
-        float logicalX;
-        float logicalY;
+    float x;
+    float y;
+    float logicalX;
+    float logicalY;
 
-        Button leftButton;
-        Button rightButton;
+    Button leftButton;
+    Button rightButton;
 
-        bool hideOnStartup;
-        bool shown;
-        u32 hideTicks;
-    };
-}
+    bool hideOnStartup;
+    bool shown;
+    std::uint32_t hideTicks;
+};
+} // namespace Shiro

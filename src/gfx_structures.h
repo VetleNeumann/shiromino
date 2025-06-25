@@ -1,6 +1,6 @@
 #pragma once
-#include "types.h"
 #include "SDL3/SDL.h"
+#include <cstdint>
 #include <filesystem>
 #include <string>
 #define EMERGENCY_OVERRIDE 1
@@ -16,31 +16,25 @@ typedef struct
 
 struct CoreState;
 
-bool img_load(gfx_image *img, std::filesystem::path&& pathWithoutExtension, CoreState *cs);
+bool img_load(gfx_image *img, std::filesystem::path &&pathWithoutExtension, CoreState *cs);
 void img_destroy(gfx_image *img);
 
-enum text_alignment {
-    ALIGN_LEFT,
-    ALIGN_RIGHT,
-    ALIGN_CENTER
-};
+enum text_alignment { ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER };
+enum gfx_button_type { BUTTON_TYPE_ACTION, BUTTON_TYPE_TOGGLE };
 
-enum gfx_button_type {
-    BUTTON_TYPE_ACTION,
-    BUTTON_TYPE_TOGGLE
-};
-
-struct png_monofont {
+struct png_monofont
+{
     SDL_Texture *sheet;
     SDL_Texture *outline_sheet;
     unsigned int char_w;
     unsigned int char_h;
 };
 
-struct text_formatting {
-    Shiro::u32 rgba;
-    Shiro::u32 outline_rgba;
-    // Shiro::u32 background_rgba;
+struct text_formatting
+{
+    std::uint32_t rgba;
+    std::uint32_t outline_rgba;
+    // std::uint32_t background_rgba;
 
     bool outlined;
     bool shadow;
@@ -51,27 +45,30 @@ struct text_formatting {
     std::size_t wrap_length;
 };
 
-struct gfx_button {
-    gfx_button() :
-        x(0),
-        y(0),
-        w(0u),
-        h(0u),
-        flags(0u),
-        highlighted(0),
-        clicked(0),
-        toggleOffText(""),
-        toggleOnText(""),
-        toggleValue(false),
-        boolPtr(nullptr),
-        type(BUTTON_TYPE_ACTION),
-        visible(true),
-        active(false),
-        action(nullptr),
-        activate_check(nullptr),
-        deactivate_check(nullptr),
-        data(nullptr),
-        text_rgba_mod(0x00000000u) {}
+struct gfx_button
+{
+    gfx_button()
+        : x(0)
+        , y(0)
+        , w(0u)
+        , h(0u)
+        , flags(0u)
+        , highlighted(0)
+        , clicked(0)
+        , toggleOffText("")
+        , toggleOnText("")
+        , toggleValue(false)
+        , boolPtr(nullptr)
+        , type(BUTTON_TYPE_ACTION)
+        , visible(true)
+        , active(false)
+        , action(nullptr)
+        , activate_check(nullptr)
+        , deactivate_check(nullptr)
+        , data(nullptr)
+        , text_rgba_mod(0x00000000u)
+    {
+    }
 
     ~gfx_button() {}
 
@@ -98,5 +95,5 @@ struct gfx_button {
     int (*activate_check)(CoreState *);
     int (*deactivate_check)(CoreState *);
     void *data;
-    Shiro::u32 text_rgba_mod;
+    std::uint32_t text_rgba_mod;
 };

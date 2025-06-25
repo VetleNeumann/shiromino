@@ -1,4 +1,9 @@
-#include "gfx_qs.h"
+#include <fstream>
+#include <sstream>
+#include <stdlib.h>
+#include <string>
+#include <vector>
+
 #include "CoreState.h"
 #include "Credits.h"
 #include "DisplayMode.h"
@@ -8,16 +13,13 @@
 #include "Timer.h"
 #include "game_qs.h"
 #include "gfx_old.h"
+#include "gfx_helpers.h"
+#include "gfx_qs.h"
 #include "random.h"
 #include "stringtools.h"
-#include "types.h"
 #include "video/Animation.h"
 #include "video/Render.h"
-#include <fstream>
-#include <sstream>
-#include <stdlib.h>
-#include <string>
-#include <vector>
+
 
 // clang-format off
 int piece_colors[26] =
@@ -162,7 +164,7 @@ int gfx_drawqs(game_t *g)
     const float lt = static_cast<float>(q->p1->speeds->lock);
     const float l = static_cast<float>(q->p1counters->lock);
     const char r = 255 - (char)(80 * l / lt);
-    Shiro::u32 rgba = (r * 0x1000000) + (r * 0x10000) + (r * 0x100) + 0xFF;
+    std::uint32_t rgba = (r * 0x1000000) + (r * 0x10000) + (r * 0x100) + 0xFF;
 
     if(YTOROW(q->p1->y) != q->locking_row)
     {
@@ -193,8 +195,8 @@ int gfx_drawqs(game_t *g)
         }
     }
 
-    SDL_FRect labg_src = {401, 0, 111 - 32, 64};
-    SDL_FRect labg_dest = {264 - 48 + 4 + x, 312 - 32 + y, 111 - 32, 64};
+    SDL_FRect labg_src = make_frect(401, 0, 111 - 32, 64);
+    SDL_FRect labg_dest = make_frect(264 - 48 + 4 + x, 312 - 32 + y, 111 - 32, 64);
 
     int preview1_x = x + 5 * 16;
     int preview2_x = q->tetromino_only ? x + 20 * 8 : x + 21 * 8;
@@ -277,7 +279,7 @@ int gfx_drawqs(game_t *g)
             secX -= 96;
         }
 
-        SDL_FRect secTimeBGRect = {secX, secY, 180, 24};
+        SDL_FRect secTimeBGRect = make_frect(secX, secY, 180, 24);
 
         Uint8 r_;
         Uint8 g_;
@@ -317,7 +319,7 @@ int gfx_drawqs(game_t *g)
         if(numSectionsDrawn > 0)
         {
             int secTimeBGHeight = 18 * (numSectionsDrawn - 1) + 16;
-            SDL_FRect secTimeOuterBGRect = {secX - 3, secY - 3, secTimeBGRect.w + 6, secTimeBGHeight + 6};
+            SDL_FRect secTimeOuterBGRect = make_frect(secX - 3, secY - 3, secTimeBGRect.w + 6, secTimeBGHeight + 6);
 
             for(int i = 0; i < 3; i++)
             {
@@ -716,7 +718,7 @@ int gfx_drawqs(game_t *g)
             if(q->pracdata->goal_level > 0)
             {
                 std::string goal_level = strtools::format("%d", q->pracdata->goal_level);
-                SDL_FRect line_rect = {x + 14 * 16 + 2, y + 20 * 16 + 2, 3 * 15 + 4, 2};
+                SDL_FRect line_rect = make_frect(x + 14 * 16 + 2, y + 20 * 16 + 2, 3 * 15 + 4, 2);
 
                 if(q->pracdata->goal_level >= 1000)
                     line_rect.w = 4 * 15 + 4;
@@ -805,8 +807,8 @@ int gfx_drawqs(game_t *g)
         {
             int gradeWithoutFlags = q->grade & 0xff;
 
-            SDL_FRect grade_src = {0, 390, 64, 64};
-            SDL_FRect grade_dest = {x + 13 * 16 + 8, y + 20, 64, 64};
+            SDL_FRect grade_src = make_frect(0, 390, 64, 64);
+            SDL_FRect grade_dest = make_frect(x + 13 * 16 + 8, y + 20, 64, 64);
             float size_multiplier = 1.0;
 
             // draw a shadowy square behind the grade
@@ -1345,8 +1347,8 @@ int gfx_drawqsmedals(game_t *g)
         return -1;
 
     qrsdata *q = (qrsdata *)g->data;
-    SDL_FRect dest = {228 + q->field_x, 150, 40, 20};
-    SDL_FRect src = {100, 0, 20, 10};
+    SDL_FRect dest = make_frect(228 + q->field_x, 150, 40, 20);
+    SDL_FRect src = make_frect(100, 0, 20, 10);
     SDL_Texture *medals = Shiro::ImageAsset::get(g->origin->assetMgr, "medals").getTexture();
     bool medal = true;
 
