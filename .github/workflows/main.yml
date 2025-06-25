@@ -23,7 +23,7 @@ jobs:
       - name: Configure and build
         run: |
           nix develop --command cmake --preset linux-gcc-debug
-          nix develop --command cmake --build/linux-gcc-debug
+          nix develop --command cmake --build linux-gcc-debug
 
     # name: linux-${{ matrix.compiler }}-${{ matrix.build-type }}
     # steps:
