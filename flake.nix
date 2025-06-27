@@ -9,7 +9,7 @@
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
 
-      gcc13Stdenv = pkgs.overrideCC pkgs.stdenv pkgs.gcc13;
+      llvm = pkgs.llvmPackages_20;
 
       sdl3_mixer = pkgs.stdenv.mkDerivation {
         pname = "sdl3-mixer";
@@ -37,7 +37,8 @@
       # Shared buildInputs for both CI and dev
       commonBuildInputs = [
         pkgs.stdenv.cc
-        pkgs.clangStdenv
+        llvm.libcxxClang
+        llvm.clang-tools
         pkgs.lld
         pkgs.cmake
         pkgs.ninja
@@ -53,12 +54,18 @@
         pkgs.libwebp
         pkgs.libtiff
       ];
+      commonShellHooks = ''
+        export LIBCXX_INCLUDE="${llvm.libcxx.dev}/include/c++/v1"
+        export LIBCXX_LIBDIR="${llvm.libcxx.out}/lib"
+        export GLIBC_INCLUDE="${pkgs.glibc.dev}/include"
+      '';
     in
     {
       devShells.${system} = {
         # Minimal CI shell
         ci = pkgs.mkShell {
           buildInputs = commonBuildInputs;
+          shellHook = commonShellHooks;
         };
 
         # Dev shell adds tools on top of CI
@@ -68,6 +75,7 @@
             pkgs.nixfmt-rfc-style
             pkgs.cmake-format
           ];
+          shellHook = commonShellHooks;
         };
       };
     };

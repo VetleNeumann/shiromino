@@ -7,7 +7,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+    name: Build linux-${{ matrix.compiler }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -22,73 +25,9 @@ jobs:
       
       - name: Configure and build
         run: |
-          nix develop .#ci --command cmake --preset linux-gcc-debug
-          nix develop .#ci --command cmake --build --preset linux-gcc-debug
+          nix develop .#ci --command cmake --preset linux-${{ matrix.compiler }}-debug
+          nix develop .#ci --command cmake --build --preset linux-${{ matrix.compiler }}-debug
 
-    # name: linux-${{ matrix.compiler }}-${{ matrix.build-type }}
-    # steps:
-    #   - uses: actions/checkout@v2
-    #   - name: Install dependencies
-    #     run: sudo apt-get update && sudo apt-get install -yq build-essential clang-7 cmake coreutils g++-8 gcc libc++-8-dev libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libstdc++-7-dev libvorbis-dev libsqlite3-dev
-    #   - name: Build targets
-    #     run: .github/workflows/build ${{ matrix.build-type }} ${{ matrix.compiler }}
-    # strategy:
-    #   matrix:
-    #     compiler:
-    #       - clang++
-    #       - clang++-7
-    #       - g++
-    #       - g++-8
-    #     build-type:
-    #       - Debug
-    #       - Release
-  # x64-mac-os:
-  #   runs-on: macos-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - name: Install mac OS dependencies
-  #       run: brew install bash cmake gcc libvorbis pkg-config sdl2 sdl2_image sdl2_mixer
-  #     - name: Build targets
-  #       run: .github/workflows/build ${{ matrix.build-type }} ${{ matrix.compiler }}
-  #   strategy:
-  #     matrix:
-  #       compiler:
-  #         - clang++
-  #         - g++
-  #       build-type:
-  #         - Debug
-  #         - Release
-  # x64-windows:
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - uses: msys2/setup-msys2@v2
-  #     - name: Install dependencies
-  #       run: pacman --needed --noconfirm -S cmake gcc git make mingw-w64-x86_64-{clang,dlfcn,glew,libvorbis,SDL2{,_image,_mixer},sqlite3}
-  #       shell: msys2 {0}
-  #     - name: Build targets
-  #       run: .github/workflows/build ${{ matrix.build-type }} ${{ matrix.compiler }}
-  #       shell: msys2 {0}
-  #     - name: Build artifact tree
-  #       run: |
-  #         mkdir artifacts
-  #         for DLL in $(ldd build/shiromino.exe | grep -v '/c/' | cut -d " " -f 3); do cp $DLL artifacts; done
-  #         mv build/shiromino.exe data LICENSE.md README.md shiromino.ini artifacts
-  #       shell: msys2 {0}
-  #     - if: matrix.build-type == 'Release' && matrix.compiler == 'clang++'
-  #       name: Upload artifacts
-  #       uses: actions/upload-artifact@v2
-  #       with:
-  #         name: shiromino-windows-x64-${{ github.sha }}
-  #         path: artifacts/*
-  #   strategy:
-  #     matrix:
-  #       build-type:
-  #         - Debug
-  #         - Release
-  #       compiler:
-  #         - clang++
-  #         - g++
 # deploy-aur-package:
 #   if: startsWith(github.ref, 'refs/tags/')
 #   needs:

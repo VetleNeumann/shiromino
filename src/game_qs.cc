@@ -873,19 +873,13 @@ game_t *qs_game_create(CoreState *cs, int level, unsigned int flags, int replay_
         q->hold_enabled = 1;
     }
 
-    uint32_t randomizer_flags = 0;
-
     switch(q->randomizer_type)
     {
         case RANDOMIZER_NORMAL:
-            if(q->pentomino_only)
-                randomizer_flags |= PENTO_RAND_NOTETS;
-
             q->randomizer = pento_randomizer_create();
             break;
 
         case RANDOMIZER_NIGHTMARE:
-            randomizer_flags |= PENTO_RAND_NIGHTMARE;
             q->randomizer = pento_randomizer_create();
             break;
 

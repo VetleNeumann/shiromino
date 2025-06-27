@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.31)
+
+# disable due to clang-scan-deps messing up includes
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 0)
+
 project(
   shiromino
   DESCRIPTION "A fast-paced puzzle game with roots in the arcade."
@@ -12,9 +17,18 @@ set(GAME_EXECUTABLE ${PROJECT_NAME})
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# cmake --preset linux-clang-debug --fresh && cmake --build --preset linux-clang-debug
-# cmake --preset linux-gcc-debug --fresh && cmake --build --preset linux-gcc-debug
 
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if(DEFINED ENV{LIBCXX_INCLUDE} AND DEFINED ENV{GLIBC_INCLUDE})
+    add_compile_options(-nostdinc++ -isystem$ENV{LIBCXX_INCLUDE}
+                        -isystem$ENV{GLIBC_INCLUDE})
+  endif()
+
+  if(DEFINED ENV{LIBCXX_LIBDIR})
+    add_link_options(-stdlib=libc++ -L$ENV{LIBCXX_LIBDIR})
+  endif()
+endif()
 
 option(
   PORTABLE
@@ -32,16 +46,22 @@ cmake_policy(SET CMP0169 OLD)
 #
 if(PORTABLE AND APPLE)
   add_executable(${GAME_EXECUTABLE} MACOSX_BUNDLE
-                 "${CMAKE_SOURCE_DIR}/icon.icns")
+                 ${GAME_SOURCES} "${CMAKE_SOURCE_DIR}/icon.icns")
   set_source_files_properties("${CMAKE_SOURCE_DIR}/icon.icns"
                               PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 elseif(WIN32 AND MSVC)
-  add_executable(${GAME_EXECUTABLE} "${CMAKE_SOURCE_DIR}/cmake/icon.rc")
+  add_executable(${GAME_EXECUTABLE} ${GAME_SOURCES}
+                                    "${CMAKE_SOURCE_DIR}/cmake/icon.rc")
 else()
-  add_executable(${GAME_EXECUTABLE})
+  add_executable(${GAME_EXECUTABLE} ${GAME_SOURCES})
 endif()
+
 target_include_directories(${GAME_EXECUTABLE} PRIVATE src)
 target_include_directories(${GAME_EXECUTABLE} SYSTEM PRIVATE third-party)
+
+file(GLOB_RECURSE GAME_SOURCES src/*.cc src/*.h)
+target_sources(${GAME_EXECUTABLE} PRIVATE ${GAME_SOURCES} third-party/PDINI.h)
+
 #
 # Put the git hash into the game if possible
 #
@@ -70,11 +90,6 @@ target_sources(
           "${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}/Version.h")
 target_include_directories(${GAME_EXECUTABLE}
                            PRIVATE "${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}")
-#
-# Sources needed to build the game
-#
-file(GLOB_RECURSE GAME_SOURCES src/*.cc src/*.h)
-target_sources(${GAME_EXECUTABLE} PRIVATE ${GAME_SOURCES} third-party/PDINI.h)
 
 #
 # External git project management
