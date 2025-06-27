@@ -439,7 +439,7 @@ bool CoreState::init()
         menu = menu_create(this);
         check(menu != NULL, "menu_create returned failure\n");
         menu->init(menu);
-        screenManager->addScreen("main", mainMenu_create(this, screenManager, assets->fixedsys));
+        screenManager->addScreen("main", mainMenu_create(this, assets->fixedsys));
         // SDL_Rect gameScreenRect = {0, 0, 640, 480};
         // screenManager->addScreen("game", new GUIScreen {this, "game", NULL, gameScreenRect});
         screenManager->loadScreen("main");
@@ -627,9 +627,7 @@ void CoreState::run()
 
         if(theRenderTarget != nullptr)
         {
-            SDL_Rect dst_ = {0, 0, 640, 480};
             SDL_SetRenderTarget(screen.renderer, NULL);
-            // Shiro::RenderCopy(screen, theRenderTarget, nullptr, &dst_);
             Shiro::RenderCopy(screen, theRenderTarget, nullptr, nullptr);
             SDL_RenderPresent(screen.renderer);
 
@@ -775,7 +773,6 @@ bool CoreState::process_events()
     float prevRenderScale = screen.render_scale;
 
     int f = 0;
-    float ff = 0;
 
     SDL_Event event;
 #define CHECK_BINDINGS(check) \
@@ -1072,7 +1069,7 @@ bool CoreState::process_events()
                         else
                         {
                             settings.fullscreen = true;
-                            if(SDL_SetWindowFullscreen(screen.window, SDL_WINDOW_FULLSCREEN) < 0)
+                            if(SDL_SetWindowFullscreen(screen.window, SDL_WINDOW_FULLSCREEN) == false)
                             {
                                 std::cout << "SDL_SetWindowFullscreen(): Error: " << SDL_GetError() << std::endl;
                             }
@@ -1322,7 +1319,7 @@ bool CoreState::process_events()
     // size of a windowed window is carried over to fullscreen desktop, so
     // resizing the window changes the fullscreen desktop viewport to the
     // resized window viewport size.
-    if(settings.fullscreen && screen.w != windowW || screen.h != windowH)
+    if(settings.fullscreen && (static_cast<int>(screen.w) != windowW || static_cast<int>(screen.h) != windowH))
     {
         SDL_Rect viewport = {0, 0, windowW, windowH};
         SDL_SetRenderViewport(screen.renderer, &viewport);
@@ -1357,10 +1354,8 @@ bool CoreState::process_events()
 
         if(screen.target_tex != nullptr)
         {
-            bool usingTarget = false;
             if(SDL_GetRenderTarget(screen.renderer) == screen.target_tex)
             {
-                usingTarget = true;
                 SDL_SetRenderTarget(screen.renderer, NULL);
             }
 

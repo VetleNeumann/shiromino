@@ -2,6 +2,7 @@
 
 # Misc
 *.nix   text eol=lf
+*.ini   text eol=lf
 
 # Sources
 *.c     text diff=cpp

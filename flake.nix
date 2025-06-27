@@ -9,6 +9,8 @@
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
 
+      gcc13Stdenv = pkgs.overrideCC pkgs.stdenv pkgs.gcc13;
+
       sdl3_mixer = pkgs.stdenv.mkDerivation {
         pname = "sdl3-mixer";
         version = "dev";
@@ -17,7 +19,7 @@
           owner = "libsdl-org";
           repo = "SDL_mixer";
           rev = "main";
-          sha256 = "sha256-JaeDKCPCSBvLmXucw9emiqNXa7t2jX6zWR41WHGwkc4="; # Fill in later
+          sha256 = "sha256-JaeDKCPCSBvLmXucw9emiqNXa7t2jX6zWR41WHGwkc4=";
         };
 
         nativeBuildInputs = [
@@ -32,9 +34,11 @@
         cmakeFlags = [ "-DSDL3MIXER_VENDORED=ON" ];
       };
 
-      # Shared inputs for both CI and dev
-      commonInputs = [
+      # Shared buildInputs for both CI and dev
+      commonBuildInputs = [
         pkgs.stdenv.cc
+        pkgs.clangStdenv
+        pkgs.lld
         pkgs.cmake
         pkgs.ninja
         pkgs.pkg-config
@@ -53,21 +57,18 @@
     {
       devShells.${system} = {
         # Minimal CI shell
-        ci = pkgs.mkShell { buildInputs = commonInputs; };
+        ci = pkgs.mkShell {
+          buildInputs = commonBuildInputs;
+        };
 
         # Dev shell adds tools on top of CI
         default = pkgs.mkShell {
-          buildInputs = commonInputs ++ [
-            pkgs.llvmPackages_20.clang-tools
+          buildInputs = commonBuildInputs ++ [
             pkgs.gdb
             pkgs.nixfmt-rfc-style
+            pkgs.cmake-format
           ];
         };
-
-        # shellHook = ''
-        #   # This is a workaround for WSL2, as ld does not support non-posix paths
-        #   export PATH=$(echo "$PATH" | tr ':' '\n' | grep -v '/mnt/c/' | paste -sd:)
-        # '';
       };
     };
 }

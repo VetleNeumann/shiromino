@@ -143,7 +143,7 @@ void menu_update_replay_pagination(menudata *d, int from_selection)
         return;
     }
 
-    for(int i = from_selection; i < d->menu.size(); i++)
+    for(size_t i = static_cast<size_t>(from_selection); i < d->menu.size(); i++)
     {
         d->menu[i].y = 60 + (i % 20) * 20;
         d->menu[i].label_text_rgba = (i % 2) ? 0xA0A0FFFF : RGBA_DEFAULT;
@@ -157,11 +157,11 @@ void menu_update_replay_pagination(menudata *d, int from_selection)
     d->target_tex_update = true;
 }
 
-int menu_delete_selected_replay(CoreState *cs, void *data)
+int menu_delete_selected_replay(CoreState *cs, void *)
 {
     menudata *d = (menudata *)cs->menu->data;
 
-    if(d->selection < 0 || d->selection >= d->menu.size())
+    if(d->selection < 0 || static_cast<size_t>(d->selection) >= d->menu.size())
     {
         return 0;
     }
@@ -176,7 +176,7 @@ int menu_delete_selected_replay(CoreState *cs, void *data)
 
         d->menu.erase(d->menu.begin() + d->selection);
 
-        if(d->selection >= d->menu.size())
+        if(static_cast<size_t>(d->selection) >= d->menu.size())
         {
             d->selection = d->menu.size() - 1;
         }
@@ -489,7 +489,7 @@ int menu_init(game_t *g)
         return -1;
     }
 
-    if (mload_main(g, 0)) {
+    if (mload_main(g) != 0) {
         std::cerr << "Failed to load main menu" << std::endl;
     }
 
@@ -541,7 +541,7 @@ int menu_input(game_t *g)
     Shiro::MultiOptionData *d2 = NULL;
     Shiro::ToggleOptionData *d3 = NULL;
     Shiro::GameOptionData *d4 = NULL;
-    Shiro::MetaGameOptionData *d5 = NULL;
+    // Shiro::MetaGameOptionData *d5 = NULL;
     Shiro::GameMultiOptionData *d6 = NULL;
     Shiro::TextOptionData *d7 = NULL;
 
@@ -559,7 +559,7 @@ int menu_input(game_t *g)
     {
         if(!(d->menu_id == MENU_ID_MAIN))
         {
-            mload_main(g, 0);
+            mload_main(g);
             return 0;
         }
     }
@@ -753,7 +753,7 @@ int menu_input(game_t *g)
                 {
                     if(d1->action)
                     {
-                        int quitStatus = d1->action(g, d1->val);
+                        int quitStatus = d1->action(g);
                         if(quitStatus == 1)
                         {
                             std::cerr << "Received quit signal, shutting down." << std::endl;
@@ -1054,11 +1054,6 @@ int menu_input(game_t *g)
     return 0;
 }
 
-int menu_frame(game_t *g) // nothing right now
-{
-    return 0;
-}
-
 int menu_clear(game_t *g)
 {
     if(!g)
@@ -1097,7 +1092,7 @@ int menu_clear(game_t *g)
     return 0;
 }
 
-int mload_main(game_t *g, int val)
+int mload_main(game_t *g)
 {
     if(!g)
         return -1;
@@ -1397,7 +1392,7 @@ int mload_main(game_t *g, int val)
     return 0;
 }
 
-int mload_practice(game_t *g, int val)
+int mload_practice(game_t *g)
 {
     CoreState *cs = g->origin;
     menudata *d = (menudata *)(g->data);
@@ -2356,7 +2351,7 @@ int mload_practice(game_t *g, int val)
     return 0;
 }
 
-int mload_options(game_t *g, int val)
+int mload_options(game_t *g)
 {
     if(!g)
         return -1;
@@ -2381,7 +2376,7 @@ int mload_options(game_t *g, int val)
 
 #define BUF_SIZE 64
 
-int mload_replay(game_t *g, int val)
+int mload_replay(game_t *g)
 {
     menudata *d = (menudata *)(g->data);
     Shiro::MenuOption *m = NULL;
@@ -2451,8 +2446,8 @@ int mload_replay(game_t *g, int val)
         }
     }
 
-    auto activateLambda = [](CoreState *cs) { int c = ((SDL_GetModState() & SDL_KMOD_SHIFT) != 0); return c; };
-    auto deactivateLambda = [](CoreState *cs) { int c = ((SDL_GetModState() & SDL_KMOD_SHIFT) == 0); return c; };
+    auto activateLambda = [](CoreState *) { int c = ((SDL_GetModState() & SDL_KMOD_SHIFT) != 0); return c; };
+    auto deactivateLambda = [](CoreState *) { int c = ((SDL_GetModState() & SDL_KMOD_SHIFT) == 0); return c; };
 
     gfx_button deleteReplayButton;
     deleteReplayButton.type = BUTTON_TYPE_ACTION;
@@ -2474,7 +2469,7 @@ int mload_replay(game_t *g, int val)
     return 0;
 }
 
-int menu_action_quit(game_t *g, int val) { return 1; }
+int menu_action_quit(game_t *) { return 1; }
 
 int menu_is_practice(game_t *g)
 {

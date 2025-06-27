@@ -1,33 +1,63 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "CMake Configure -- Linux GCC Debug",
-      "type": "shell",
-      "command": "nix",
-      "args": [
-        "develop",
-        "--command",
-        "cmake",
-        "--preset",
-        "linux-gcc-debug"
-      ],
-      "group": "build",
-      "problemMatcher": []
-    },
-    {
-      "label": "CMake Build -- Linux GCC Debug",
-      "type": "shell",
-      "command": "nix",
-      "args": [
-        "develop",
-        "--command",
-        "cmake",
-        "--build",
-        "build/linux-gcc-debug"
-      ],
-      "group": "build",
-      "problemMatcher": []
-    }
-  ]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "CMake Configure -- Linux GCC Debug",
+            "type": "shell",
+            "command": "nix",
+            "args": [ 
+                "develop",
+                "--command",
+                "cmake",
+                "--preset",
+                "linux-gcc-debug",
+                "--fresh"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake Configure -- Linux Clang Debug",
+            "type": "shell",
+            "command": "nix",
+            "args": [
+                "develop",
+                "--command",
+                "cmake",
+                "--preset",
+                "linux-clang-debug",
+                "--fresh"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake Build -- Linux GCC Debug",
+            "type": "shell",
+            "command": "nix",
+            "args": [
+                "develop",
+                "--command",
+                "cmake",
+                "--build",
+                "build/linux-gcc-debug"
+            ],
+            "group": "build",
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "CMake Build -- Linux Clang Debug",
+            "type": "shell",
+            "command": "nix",
+            "args": [
+                "develop",
+                "--command",
+                "cmake",
+                "--build",
+                "build/linux-clang-debug"
+            ],
+            "group": "build",
+            "problemMatcher": ["$gcc"]
+        }
+    ]
 }

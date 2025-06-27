@@ -60,8 +60,6 @@ class ScreenManager
         }
     }
 
-    void scrollSelection(int amount) {}
-
   protected:
     std::map<std::string, GUIScreen *> screens;
     // std::map<std::string, std::function<GUIScreen *(ScreenManager *)>> screenMakers;
@@ -78,7 +76,7 @@ class GUIScreenSwitchButton : public Button
         this->mngr = mngr;
     }
 
-    virtual void mouseClicked(int x, int y, Uint8 button) override
+    virtual void mouseClicked(int, int, Uint8) override
     {
         if(mngr)
         {
@@ -91,5 +89,5 @@ class GUIScreenSwitchButton : public Button
     ScreenManager *mngr;
 };
 
-GUIScreen *mainMenu_create(CoreState *cs, ScreenManager *mngr, BitFont &font);
+GUIScreen *mainMenu_create(CoreState *cs, BitFont &font);
 void mainMenuInteractionCallback(GUIInteractable &, GUIEvent &);

@@ -56,7 +56,7 @@ bool Shiro::Screen::init(const Settings &settings)
         return false;
     }
 
-    if(SDL_SetRenderVSync(renderer, settings.vsync ? 1 : 0) < 0)
+    if(SDL_SetRenderVSync(renderer, settings.vsync ? 1 : 0) == false)
     {
         log_err("SDL_SetRenderVSync: %s", SDL_GetError());
         SDL_DestroyRenderer(renderer);
@@ -64,7 +64,7 @@ bool Shiro::Screen::init(const Settings &settings)
         return false;
     }
 
-    if(SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND) < 0)
+    if(SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND) == false)
     {
         log_err("SDL_SetRenderDrawBlendMode: %s", SDL_GetError());
         SDL_DestroyRenderer(renderer);
@@ -75,7 +75,7 @@ bool Shiro::Screen::init(const Settings &settings)
     SDL_SetWindowMinimumSize(window, 640, 480);
     if(settings.fullscreen)
     {
-        if(SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN) < 0)
+        if(SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN) == false)
         {
             log_err("SDL_SetWindowFullscreen: %s", SDL_GetError());
             SDL_DestroyRenderer(renderer);

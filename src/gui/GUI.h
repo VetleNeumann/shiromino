@@ -222,7 +222,7 @@ class GUIElement
     virtual ~GUIElement() {};
 
     virtual void draw() = 0;
-    void prepareRenderTarget(bool);
+    void prepareRenderTarget();
     void setWindow(Window &w) { containingWindow = &w; }
     Window *getWindow() { return containingWindow; }
 
@@ -677,7 +677,7 @@ inline std::uint8_t rgba_B(Shiro::GUI::rgba_t rgba) { return (rgba & 0x0000FF00)
 
 inline std::uint8_t rgba_A(Shiro::GUI::rgba_t rgba) { return (rgba & 0x000000FF); }
 
-inline void GUIElement::prepareRenderTarget(bool isFinalCopy)
+inline void GUIElement::prepareRenderTarget()
 {
     if(this->containingWindow)
     {
@@ -697,11 +697,10 @@ inline void setGUITextureRGBA(SDL_Texture *tex, Shiro::GUI::rgba_t rgba)
 
 void GUIDrawBorder(SDL_FRect &, const float, Shiro::GUI::rgba_t);
 
-void generateGUITextPositionalValues(std::string &, TextFormat *, BitFont &, SDL_FRect &, std::vector<std::pair<int, int>> &, bool, bool);
-void generateGUITextPositionalValuesPartial(std::string &, unsigned int, unsigned int, TextFormat *, BitFont &, SDL_FRect &, std::vector<std::pair<int, int>> &,
-                                            bool, bool);
+void generateGUITextPositionalValues(std::string &, TextFormat *, BitFont &, SDL_FRect &, std::vector<std::pair<int, int>> &);
+void generateGUITextPositionalValuesPartial(std::string &, unsigned int, unsigned int, TextFormat *, BitFont &, SDL_FRect &, std::vector<std::pair<int, int>> &);
 
-void drawGUITextPV(std::string, TextFormat *, BitFont &, std::vector<std::pair<int, int>> &, unsigned int, unsigned int);
-void drawGUITextPartialPV(std::string, unsigned int, unsigned int, TextFormat *, BitFont &, std::vector<std::pair<int, int>> &, unsigned int, unsigned int);
+void drawGUITextPV(std::string, TextFormat *, BitFont &, std::vector<std::pair<int, int>> &);
+void drawGUITextPartialPV(std::string, unsigned int, unsigned int, TextFormat *, BitFont &, std::vector<std::pair<int, int>> &);
 void drawGUIText(std::string, TextFormat *, BitFont &, SDL_FRect &);
 void drawGUITextPartial(std::string, unsigned int, unsigned int, TextFormat *, BitFont &, SDL_FRect &);

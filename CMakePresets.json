@@ -25,6 +25,24 @@
             }
         },
         {
+            "name": "linux-clang-debug",
+            "displayName": "Linux LLVM-Clang Debug",
+            "description": "Debug build for Linux using LLVM-Clang",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_CXX_COMPILER": "clang++"
+            },
+            "hidden": false,
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
             "name": "windows-mingw-debug",
             "displayName": "Windows MinGW Debug (Cross-compile)",
             "description": "Debug build for Windows using MinGW-w64 cross-compiler on Ubuntu",
@@ -49,6 +67,10 @@
         {
             "name": "linux-gcc-debug",
             "configurePreset": "linux-gcc-debug"
+        },
+        {
+            "name": "linux-clang-debug",
+            "configurePreset": "linux-clang-debug"
         },
         {
             "name": "windows-mingw-debug",

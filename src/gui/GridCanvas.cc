@@ -17,7 +17,7 @@ GridCanvas::GridCanvas(int ID, Shiro::Grid *cells, BindableInt &paletteVar, SDL_
     readPaletteSelection(&paletteVar);
     paletteSize = (unsigned)std::get<1>(paletteVar.getRange());
 
-    std::function<void(BindableVariable *)> membFunc = [=](BindableVariable *bv) { this->readPaletteSelection(bv); };
+    std::function<void(BindableVariable *)> membFunc = [this](BindableVariable *bv) { this->readPaletteSelection(bv); };
 
     std::unique_ptr<VariableObserver> vob{(VariableObserver *)(new MemberVariableObserver{membFunc})};
 
@@ -40,7 +40,7 @@ GridCanvas::GridCanvas(int ID, Shiro::Grid *cells, BindableInt &paletteVar, SDL_
 
 void GridCanvas::draw()
 {
-    this->prepareRenderTarget(false);
+    this->prepareRenderTarget();
 
     GUIDrawBorder(relativeDestRect, 1, Shiro::GUI::RGBA_DEFAULT);
 
@@ -261,7 +261,7 @@ void GridCanvas::mouseDragged(int x, int y, Uint8 button)
     }
 }
 
-void GridCanvas::mouseReleased(int x, int y, Uint8 button) { editInProgress = false; }
+void GridCanvas::mouseReleased(int, int, Uint8) { editInProgress = false; }
 
 void GridCanvas::keyPressed(SDL_Keycode kc)
 {

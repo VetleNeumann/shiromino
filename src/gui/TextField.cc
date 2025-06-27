@@ -60,11 +60,11 @@ void TextField::setTextFormat(TextFormat &fmt) { this->fmt = fmt; }
 
 void TextField::draw()
 {
-    this->prepareRenderTarget(false);
+    this->prepareRenderTarget();
 
     if(updatePositionalValues)
     {
-        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues, horizontalScroll, verticalScroll);
+        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues);
         updatePositionalValues = false;
     }
 
@@ -73,7 +73,7 @@ void TextField::draw()
 
     if(selectionStart == selectionEnd)
     {
-        drawGUITextPV(value, &fmt, font, textPositionalValues, scrollPosX, scrollPosY);
+        drawGUITextPV(value, &fmt, font, textPositionalValues);
     }
     else
     {
@@ -84,9 +84,9 @@ void TextField::draw()
         unsigned int start = selectionStart < selectionEnd ? selectionStart : selectionEnd;
         unsigned int end = selectionStart < selectionEnd ? selectionEnd : selectionStart;
 
-        drawGUITextPartialPV(value, 0, start, &fmt, font, textPositionalValues, scrollPosX, scrollPosY);
-        drawGUITextPartialPV(value, start, end - start, &selectionFmt, font, textPositionalValues, scrollPosX, scrollPosY);
-        drawGUITextPartialPV(value, end, (unsigned)value.size() - end, &fmt, font, textPositionalValues, scrollPosX, scrollPosY);
+        drawGUITextPartialPV(value, 0, start, &fmt, font, textPositionalValues);
+        drawGUITextPartialPV(value, start, end - start, &selectionFmt, font, textPositionalValues);
+        drawGUITextPartialPV(value, end, (unsigned)value.size() - end, &fmt, font, textPositionalValues);
     }
 
     bool cursorBlinkOn = false;
@@ -203,11 +203,11 @@ void TextField::handleEvent(GUIEvent &event)
     }
 }
 
-void TextField::mouseClicked(int x, int y, Uint8 button)
+void TextField::mouseClicked(int x, int y, [[maybe_unused]] Uint8 button)
 {
     if(updatePositionalValues)
     {
-        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues, horizontalScroll, verticalScroll);
+        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues);
         updatePositionalValues = false;
     }
 
@@ -230,7 +230,7 @@ void TextField::mouseClicked(int x, int y, Uint8 button)
     }
 }
 
-void TextField::mouseDragged(int x, int y, Uint8 button)
+void TextField::mouseDragged(int x, int y, Uint8)
 {
     if(!hasKeyboardFocus)
     {
@@ -239,7 +239,7 @@ void TextField::mouseDragged(int x, int y, Uint8 button)
 
     if(updatePositionalValues)
     {
-        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues, horizontalScroll, verticalScroll);
+        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues);
         updatePositionalValues = false;
     }
 
@@ -253,7 +253,7 @@ void TextField::mouseDragged(int x, int y, Uint8 button)
     cursor = selectionEnd = pos;
 }
 
-void TextField::mouseReleased(int x, int y, Uint8 button) {}
+void TextField::mouseReleased(int, int, Uint8) {}
 
 void TextField::keyPressed(SDL_Keycode kc)
 {

@@ -128,7 +128,7 @@ void gfx_quit(CoreState *cs)
     free(monofont_fixedsys);
 }
 
-int gfx_createbutton(CoreState *cs, const char *text, int x, int y, unsigned int flags, int (*action)(CoreState *, void *),
+int gfx_createbutton(CoreState *cs, const char *text, int x, int y, unsigned int flags,
                      int (*deactivate_check)(CoreState *), void *data, std::uint32_t rgba)
 {
     if(!text)
@@ -143,7 +143,6 @@ int gfx_createbutton(CoreState *cs, const char *text, int x, int y, unsigned int
     b.flags = flags;
     b.highlighted = 0;
     b.clicked = 0;
-    b.action = action;
     b.deactivate_check = deactivate_check;
     b.data = data;
     b.text_rgba_mod = rgba;
@@ -808,9 +807,9 @@ int gfx_drawtext_partial(CoreState *cs, std::string text, int pos, std::size_t l
     {
         int thisLineLength = lines[linefeeds].size() - (linefeeds != lines.size() - 1 ? 1 : 0);
 
-        if(thisLineLength > fmt->wrap_length)
+        if(thisLineLength > static_cast<int>(fmt->wrap_length))
         {
-            thisLineLength = fmt->wrap_length;
+            thisLineLength = static_cast<int>(fmt->wrap_length);
         }
 
         if(i == 0)

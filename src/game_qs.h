@@ -128,7 +128,7 @@ double pentomino_c_difficulty(int level);
 
 game_t *qs_game_create(CoreState *cs, int level, unsigned int flags, int replay_id);
 int qs_game_init(game_t *g);
-int qs_game_pracinit(game_t *g, int val);
+int qs_game_pracinit(game_t *g);
 int qs_game_quit(game_t *g);
 int qs_game_preframe(game_t *g);
 int qs_game_frame(game_t *g);

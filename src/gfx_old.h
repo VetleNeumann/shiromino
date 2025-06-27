@@ -77,7 +77,7 @@ void img_destroy(gfx_image *img);
 // int gfx_brighten_texture(SDL_Texture *tex, Uint8 amt);
 //  int gfx_darken_texture(SDL_Texture *tex, Uint8 amt);
 
-int gfx_createbutton(CoreState *cs, const char *text, int x, int y, unsigned int flags, int (*action)(CoreState *, void *),
+int gfx_createbutton(CoreState *cs, const char *text, int x, int y, unsigned int flags,
                      int (*deactivate_check)(CoreState *), void *data, std::uint32_t rgba);
 int gfx_drawbuttons(CoreState *cs, int type);
 

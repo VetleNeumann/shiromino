@@ -155,15 +155,15 @@ GUIText::GUIText(std::string text, BitFont &font, SDL_FRect &relativeDestRect) :
 
 void GUIText::draw()
 {
-    this->prepareRenderTarget(false);
+    this->prepareRenderTarget();
 
     if(updatePositionalValues)
     {
-        generateGUITextPositionalValues(text, &fmt, font, relativeDestRect, textPositionalValues, false, false);
+        generateGUITextPositionalValues(text, &fmt, font, relativeDestRect, textPositionalValues);
         updatePositionalValues = false;
     }
 
-    drawGUITextPV(text, &fmt, font, textPositionalValues, 0, 0);
+    drawGUITextPV(text, &fmt, font, textPositionalValues);
 }
 
 bool GUIInteractable::canInteractAt(int x, int y)
@@ -229,14 +229,13 @@ void GUIDrawBorder(SDL_FRect &rect, float width, Shiro::GUI::rgba_t rgba)
     SDL_SetRenderDrawColor(guiSDLRenderer, r, g, b, a);
 }
 
-void generateGUITextPositionalValues(std::string &text, TextFormat *fmt, BitFont &font, SDL_FRect &destBox, std::vector<std::pair<int, int>> &values,
-                                     bool horizontalScroll, bool verticalScroll)
+void generateGUITextPositionalValues(std::string &text, TextFormat *fmt, BitFont &font, SDL_FRect &destBox, std::vector<std::pair<int, int>> &values)
 {
-    generateGUITextPositionalValuesPartial(text, 0, (unsigned)text.size(), fmt, font, destBox, values, horizontalScroll, verticalScroll);
+    generateGUITextPositionalValuesPartial(text, 0, (unsigned)text.size(), fmt, font, destBox, values);
 }
 
 void generateGUITextPositionalValuesPartial(std::string &text, unsigned int pos, unsigned int len, TextFormat *fmt, BitFont &font, SDL_FRect &destBox,
-                                            std::vector<std::pair<int, int>> &values, bool horizontalScroll, bool verticalScroll)
+                                            std::vector<std::pair<int, int>> &values)
 {
     TextFormat fmtDefault{};
 
@@ -345,14 +344,13 @@ void generateGUITextPositionalValuesPartial(std::string &text, unsigned int pos,
     }
 }
 
-void drawGUITextPV(std::string text, TextFormat *fmt, BitFont &font, std::vector<std::pair<int, int>> &positionalValues, unsigned int scrollPosX,
-                   unsigned int scrollPosY)
+void drawGUITextPV(std::string text, TextFormat *fmt, BitFont &font, std::vector<std::pair<int, int>> &positionalValues)
 {
-    drawGUITextPartialPV(text, 0, (unsigned)text.size(), fmt, font, positionalValues, scrollPosX, scrollPosY);
+    drawGUITextPartialPV(text, 0, (unsigned)text.size(), fmt, font, positionalValues);
 }
 
 void drawGUITextPartialPV(std::string text, unsigned int pos, unsigned int len, TextFormat *fmt, BitFont &font,
-                          std::vector<std::pair<int, int>> &positionalValues, unsigned int scrollPosX, unsigned int scrollPosY)
+                          std::vector<std::pair<int, int>> &positionalValues)
 {
     if(positionalValues.size() == 0)
     {
@@ -375,13 +373,6 @@ void drawGUITextPartialPV(std::string text, unsigned int pos, unsigned int len, 
 
     SDL_FRect src = {0.0f, 0.0f, static_cast<float>(font.charW), static_cast<float>(font.charH)};
     SDL_FRect dest = {0.0f, 0.0f, fmt->sizeMult * static_cast<float>(font.charW), fmt->sizeMult * static_cast<float>(font.charH)};
-
-    bool using_target_tex = false;
-
-    if(SDL_GetRenderTarget(guiSDLRenderer) != NULL)
-    {
-        using_target_tex = true;
-    }
 
     for(unsigned int i = pos; i < positionalValues.size() && i < pos + len; i++)
     {
@@ -456,14 +447,14 @@ void drawGUITextPartialPV(std::string text, unsigned int pos, unsigned int len, 
 void drawGUIText(std::string text, TextFormat *fmt, BitFont &font, SDL_FRect &destBox)
 {
     std::vector<std::pair<int, int>> textPositionalValues;
-    generateGUITextPositionalValues(text, fmt, font, destBox, textPositionalValues, false, false);
-    drawGUITextPV(text, fmt, font, textPositionalValues, 0, 0);
+    generateGUITextPositionalValues(text, fmt, font, destBox, textPositionalValues);
+    drawGUITextPV(text, fmt, font, textPositionalValues);
 }
 
 void drawGUITextPartial(std::string text, unsigned int pos, unsigned int len, TextFormat *fmt, BitFont &font, SDL_FRect &destBox)
 // destBox's w and h fields can be 0, which results in the text being rendered without strict positional bounds
 {
     std::vector<std::pair<int, int>> textPositionalValues;
-    generateGUITextPositionalValuesPartial(text, pos, len, fmt, font, destBox, textPositionalValues, false, false);
-    drawGUITextPartialPV(text, pos, len, fmt, font, textPositionalValues, 0, 0);
+    generateGUITextPositionalValuesPartial(text, pos, len, fmt, font, destBox, textPositionalValues);
+    drawGUITextPartialPV(text, pos, len, fmt, font, textPositionalValues);
 }

@@ -85,11 +85,11 @@ SDL_Texture *gfx_create_credits_tex(CoreState *cs, int num_lines)
         0xFFFF00FF  // yellow
     };
 
-    int colorIndex = 0;
+    std::size_t colorIndex = 0;
 
     std::vector<std::string> lines = strtools::split(Shiro::Credits::creditsString, '\n');
 
-    for(int i = 0; i < lines.size(); i++)
+    for(std::size_t i = 0; i < lines.size(); i++)
     {
         if(lines[i].size() == 0)
         {

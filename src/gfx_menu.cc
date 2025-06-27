@@ -23,10 +23,7 @@ int gfx_drawmenu(game_t *g)
 
     CoreState *cs = g->origin;
 
-    SDL_Texture *theRenderTarget = SDL_GetRenderTarget(cs->screen.renderer);
-
     SDL_Texture *font = Shiro::ImageAsset::get(cs->assetMgr, "font").getTexture();
-    SDL_Texture *font_thin = Shiro::ImageAsset::get(cs->assetMgr, "font_thin").getTexture();
     SDL_FRect src = {0, 80, 16, 16};
     SDL_FRect dest = {0, 0, 16, 16};
     SDL_FRect barsrc = {12 * 16, 17, 2, 14};

@@ -34,7 +34,6 @@ public:
     ~MultiEditor();
 
     void handleInput();
-    void handleGUIInteraction(GUIInteractable&, GUIEvent&);
 
     void updateGravity(BindableVariable *);
     void updateLock(BindableVariable *);

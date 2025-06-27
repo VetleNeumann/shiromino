@@ -48,10 +48,10 @@ void initialize(const Shiro::Settings &settings)
     desiredSpec.freq = settings.samplingRate;
     desiredSpec.format = MIX_DEFAULT_FORMAT;
     desiredSpec.channels = 32;
-    if(Mix_OpenAudio(0, &desiredSpec) == -1)
+    if(Mix_OpenAudio(0, &desiredSpec) == false)
     {
         std::cerr << "Mix_OpenAudio: Error: " << SDL_GetError() << std::endl;
-        std::exit(EXIT_FAILURE);
+        // std::exit(EXIT_FAILURE);
     }
 
     g123_seeds_init();
