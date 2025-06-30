@@ -6,15 +6,21 @@
 
 // TODO: Change malloc/free of structs containing std::string to new/delete.
 
+#include <cstdlib>
+#include <ctime>
+#include <exception>
+#include <iostream>
+
 #include "CoreState.h"
-#include "asset/Sfx.h"
-#include "asset/Music.h"
-#include "game_menu.h"
 #include "GameType.h"
-#include "game_qs.h"
-#include "gfx_old.h"
-#include "gfx_menu.h"
 #include "QRS0.h"
+#include "RefreshRates.h"
+#include "asset/Music.h"
+#include "asset/Sfx.h"
+#include "game_menu.h"
+#include "game_qs.h"
+#include "gfx_menu.h"
+#include "gfx_old.h"
 #include "menu/ActionOption.h"
 #include "menu/ElementType.h"
 #include "menu/GameArguments.h"
@@ -25,12 +31,8 @@
 #include "menu/Option.h"
 #include "menu/TextOption.h"
 #include "menu/ToggleOption.h"
-#include "RefreshRates.h"
 #include "replay.h"
-#include <cstdlib>
-#include <ctime>
-#include <iostream>
-#include <exception>
+
 Shiro::MenuOption std_game_multiopt_create(CoreState *cs, unsigned int mode, int num_sections, std::string label)
 {
     Shiro::MenuOption m = Shiro::create_menu_option(Shiro::ElementType::MENU_GAME_MULTIOPT, NULL, label);
@@ -40,7 +42,8 @@ Shiro::MenuOption std_game_multiopt_create(CoreState *cs, unsigned int mode, int
     d6->num = num_sections;
     d6->selection = 0;
     d6->labels.push_back("");
-    for (int i = 1; i < num_sections; i++) {
+    for(int i = 1; i < num_sections; i++)
+    {
         std::stringstream ss;
         ss << 100 * i;
         d6->labels.push_back(ss.str());
@@ -52,18 +55,16 @@ Shiro::MenuOption std_game_multiopt_create(CoreState *cs, unsigned int mode, int
         throw std::bad_alloc();
     }
     assert(d6->args != nullptr);
-    for (int i = 0; i < num_sections; i++) {
+    for(int i = 0; i < num_sections; i++)
+    {
         d6->args[i].num = 4;
         d6->args[i].ptrs = (void **)malloc(4 * sizeof(void *));
         if(!d6->args[i].ptrs)
         {
             throw std::bad_alloc();
         }
-        if (
-            !(d6->args[i].ptrs[0] = malloc(sizeof(CoreState*))) ||
-            !(d6->args[i].ptrs[1] = malloc(sizeof(int))) ||
-            !(d6->args[i].ptrs[2] = malloc(sizeof(unsigned int))) ||
-            !(d6->args[i].ptrs[3] = malloc(sizeof(char*))))
+        if(!(d6->args[i].ptrs[0] = malloc(sizeof(CoreState *))) || !(d6->args[i].ptrs[1] = malloc(sizeof(int))) ||
+           !(d6->args[i].ptrs[2] = malloc(sizeof(unsigned int))) || !(d6->args[i].ptrs[3] = malloc(sizeof(char *))))
         {
             throw std::bad_alloc();
         }
@@ -143,7 +144,7 @@ void menu_update_replay_pagination(menudata *d, int from_selection)
         return;
     }
 
-    for(int i = from_selection; i < d->menu.size(); i++)
+    for(size_t i = static_cast<size_t>(from_selection); i < d->menu.size(); i++)
     {
         d->menu[i].y = 60 + (i % 20) * 20;
         d->menu[i].label_text_rgba = (i % 2) ? 0xA0A0FFFF : RGBA_DEFAULT;
@@ -157,11 +158,11 @@ void menu_update_replay_pagination(menudata *d, int from_selection)
     d->target_tex_update = true;
 }
 
-int menu_delete_selected_replay(CoreState *cs, void *data)
+int menu_delete_selected_replay(CoreState *cs, void *)
 {
     menudata *d = (menudata *)cs->menu->data;
 
-    if(d->selection < 0 || d->selection >= d->menu.size())
+    if(d->selection < 0 || static_cast<size_t>(d->selection) >= d->menu.size())
     {
         return 0;
     }
@@ -176,7 +177,7 @@ int menu_delete_selected_replay(CoreState *cs, void *data)
 
         d->menu.erase(d->menu.begin() + d->selection);
 
-        if(d->selection >= d->menu.size())
+        if(static_cast<size_t>(d->selection) >= d->menu.size())
         {
             d->selection = d->menu.size() - 1;
         }
@@ -215,7 +216,7 @@ int menu_text_insert(CoreState *cs, char *str)
 {
     menudata *d = (menudata *)cs->menu->data;
     Shiro::TextOptionData *d7 = (Shiro::TextOptionData *)d->menu[d->selection].data;
-    std::string& t = d7->text;
+    std::string &t = d7->text;
 
     if(cs->button_emergency_override)
         return 0;
@@ -234,7 +235,7 @@ int menu_text_insert(CoreState *cs, char *str)
         else
         {
             t.insert(d7->position, str);
-            if (t.size() > 2000)
+            if(t.size() > 2000)
             {
                 t.resize(2000);
                 d7->position = 2000;
@@ -262,7 +263,7 @@ int menu_text_backspace(CoreState *cs)
 {
     menudata *d = (menudata *)cs->menu->data;
     Shiro::TextOptionData *d7 = (Shiro::TextOptionData *)d->menu[d->selection].data;
-    std::string& t = d7->text;
+    std::string &t = d7->text;
 
     if(cs->button_emergency_override)
         return 0;
@@ -292,7 +293,7 @@ int menu_text_delete(CoreState *cs)
 {
     menudata *d = (menudata *)cs->menu->data;
     Shiro::TextOptionData *d7 = (Shiro::TextOptionData *)d->menu[d->selection].data;
-    std::string& t = d7->text;
+    std::string &t = d7->text;
 
     if(cs->button_emergency_override)
         return 0;
@@ -338,7 +339,7 @@ int menu_text_seek_right(CoreState *cs)
 {
     menudata *d = (menudata *)cs->menu->data;
     Shiro::TextOptionData *d7 = (Shiro::TextOptionData *)d->menu[d->selection].data;
-    std::string& t = d7->text;
+    std::string &t = d7->text;
 
     if(cs->button_emergency_override)
         return 0;
@@ -371,7 +372,7 @@ int menu_text_seek_end(CoreState *cs)
 {
     menudata *d = (menudata *)cs->menu->data;
     Shiro::TextOptionData *d7 = (Shiro::TextOptionData *)d->menu[d->selection].data;
-    std::string& t = d7->text;
+    std::string &t = d7->text;
 
     if(cs->button_emergency_override)
         return 0;
@@ -485,11 +486,13 @@ game_t *menu_create(CoreState *cs)
 
 int menu_init(game_t *g)
 {
-    if (!g) {
+    if(!g)
+    {
         return -1;
     }
 
-    if (mload_main(g, 0)) {
+    if(mload_main(g) != 0)
+    {
         std::cerr << "Failed to load main menu" << std::endl;
     }
 
@@ -515,8 +518,10 @@ int menu_quit(game_t *g)
     menudata *d = (menudata *)(g->data);
     int i = 0;
 
-    if (d->menu.size()) {
-        for (i = 0; i < d->numopts; i++) {
+    if(d->menu.size())
+    {
+        for(i = 0; i < d->numopts; i++)
+        {
             Shiro::destroy_menu_option(d->menu[i]);
         }
     }
@@ -541,7 +546,7 @@ int menu_input(game_t *g)
     Shiro::MultiOptionData *d2 = NULL;
     Shiro::ToggleOptionData *d3 = NULL;
     Shiro::GameOptionData *d4 = NULL;
-    Shiro::MetaGameOptionData *d5 = NULL;
+    // Shiro::MetaGameOptionData *d5 = NULL;
     Shiro::GameMultiOptionData *d6 = NULL;
     Shiro::TextOptionData *d7 = NULL;
 
@@ -559,7 +564,7 @@ int menu_input(game_t *g)
     {
         if(!(d->menu_id == MENU_ID_MAIN))
         {
-            mload_main(g, 0);
+            mload_main(g);
             return 0;
         }
     }
@@ -582,7 +587,7 @@ int menu_input(game_t *g)
         cs->text_cut = NULL;
     }
 
-    if((cs->pressed.up || cs->is_up_input_repeat(DAS)) && d->selection > 0 && !(SDL_GetModState() & (KMOD_CTRL | KMOD_SHIFT)))
+    if((cs->pressed.up || cs->is_up_input_repeat(DAS)) && d->selection > 0 && !(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT)))
     {
         update = true;
         for(i = d->selection - 1;; i--)
@@ -600,7 +605,8 @@ int menu_input(game_t *g)
             if(d->menu[i].type != Shiro::ElementType::MENU_LABEL)
             {
                 d->selection = i;
-                if(cs->pressed.up == 1) {
+                if(cs->pressed.up == 1)
+                {
                     Shiro::SfxAsset::get(cs->assetMgr, "menu_choose").play(cs->settings);
                 }
                 if(d->menu[d->selection].type == Shiro::ElementType::MENU_TEXTINPUT)
@@ -637,7 +643,7 @@ int menu_input(game_t *g)
         }
     }
 
-    if((cs->pressed.down || cs->is_down_input_repeat(DAS)) && (d->selection < d->numopts - 1) && !(SDL_GetModState() & (KMOD_CTRL | KMOD_SHIFT)))
+    if((cs->pressed.down || cs->is_down_input_repeat(DAS)) && (d->selection < d->numopts - 1) && !(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT)))
     {
         update = true;
         for(i = d->selection + 1;; i++)
@@ -663,7 +669,8 @@ int menu_input(game_t *g)
             if(d->menu[i].type != Shiro::ElementType::MENU_LABEL)
             {
                 d->selection = i;
-                if(cs->pressed.down == 1) {
+                if(cs->pressed.down == 1)
+                {
                     Shiro::SfxAsset::get(cs->assetMgr, "menu_choose").play(cs->settings);
                 }
                 if(d->menu[d->selection].type == Shiro::ElementType::MENU_TEXTINPUT)
@@ -702,14 +709,15 @@ int menu_input(game_t *g)
 
     if(d->is_paged)
     {
-        if((cs->pressed.left || cs->is_left_input_repeat(DAS)) && d->page > 0 && !(SDL_GetModState() & (KMOD_CTRL | KMOD_SHIFT)))
+        if((cs->pressed.left || cs->is_left_input_repeat(DAS)) && d->page > 0 && !(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT)))
         {
             update = true;
             d->selection = d->selection - d->page_length;
             d->page--;
         }
 
-        if((cs->pressed.right || cs->is_right_input_repeat(DAS)) && d->page < ((d->numopts - 1) / d->page_length) && !(SDL_GetModState() & (KMOD_CTRL | KMOD_SHIFT)))
+        if((cs->pressed.right || cs->is_right_input_repeat(DAS)) && d->page < ((d->numopts - 1) / d->page_length) &&
+           !(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT)))
         {
             update = true;
             d->selection = d->selection + d->page_length;
@@ -742,7 +750,7 @@ int menu_input(game_t *g)
 
     m = &d->menu[d->selection];
 
-    if(!(SDL_GetModState() & (KMOD_CTRL | KMOD_SHIFT)))
+    if(!(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT)))
     {
         switch(m->type)
         {
@@ -753,13 +761,14 @@ int menu_input(game_t *g)
                 {
                     if(d1->action)
                     {
-                        int quitStatus = d1->action(g, d1->val);
+                        int quitStatus = d1->action(g);
                         if(quitStatus == 1)
                         {
                             std::cerr << "Received quit signal, shutting down." << std::endl;
                             return 1;
                         }
-                        else if (quitStatus == 2) {
+                        else if(quitStatus == 2)
+                        {
                             return 2;
                         }
 
@@ -935,8 +944,9 @@ int menu_input(game_t *g)
 
     if(d->menuButtons.size() > 0)
     {
-        for(auto it = d->menuButtons.begin(); it != d->menuButtons.end(); it++) {
-            gfx_button& b = *it;
+        for(auto it = d->menuButtons.begin(); it != d->menuButtons.end(); it++)
+        {
+            gfx_button &b = *it;
 
             if(!b.active)
             {
@@ -983,8 +993,7 @@ int menu_input(game_t *g)
                 continue;
             }
 
-            if(cs->mouse.logicalX < b.x + b.w && cs->mouse.logicalX >= b.x && cs->mouse.logicalY < b.y + b.h &&
-               cs->mouse.logicalY >= b.y)
+            if(cs->mouse.logicalX < b.x + b.w && cs->mouse.logicalX >= b.x && cs->mouse.logicalY < b.y + b.h && cs->mouse.logicalY >= b.y)
                 b.highlighted = 1;
             else
                 b.highlighted = 0;
@@ -1010,13 +1019,15 @@ int menu_input(game_t *g)
 
                 b.clicked = 4;
             }
-            if (b.clicked) {
+            if(b.clicked)
+            {
                 b.clicked--;
             }
         }
 
-        for (auto it = d->menuButtons.begin(); it != d->menuButtons.end(); it++) {
-            gfx_button& b = *it;
+        for(auto it = d->menuButtons.begin(); it != d->menuButtons.end(); it++)
+        {
+            gfx_button &b = *it;
 
             if(cs->button_emergency_override && !(b.flags & BUTTON_EMERGENCY))
             {
@@ -1051,11 +1062,6 @@ int menu_input(game_t *g)
 
     d->target_tex_update = false;
 
-    return 0;
-}
-
-int menu_frame(game_t *g) // nothing right now
-{
     return 0;
 }
 
@@ -1097,7 +1103,7 @@ int menu_clear(game_t *g)
     return 0;
 }
 
-int mload_main(game_t *g, int val)
+int mload_main(game_t *g)
 {
     if(!g)
         return -1;
@@ -1127,7 +1133,7 @@ int mload_main(game_t *g, int val)
 
     cs->bg.transition(Shiro::ImageAsset::get(cs->assetMgr, "bg_temp"));
 
-    //d->menu.resize(16, menu_opt());
+    // d->menu.resize(16, menu_opt());
     d->menu_id = MENU_ID_MAIN;
     d->use_target_tex = 0;
     d->selection = d->main_menu_data.selection;
@@ -1142,12 +1148,12 @@ int mload_main(game_t *g, int val)
     d6->num++;
     d6->labels.push_back("ACID RAIN");
     assert(d6->args != nullptr);
-    void* argsTemp = realloc(d6->args, d6->num * sizeof(Shiro::GameArguments));
+    void *argsTemp = realloc(d6->args, d6->num * sizeof(Shiro::GameArguments));
     if(!argsTemp)
     {
         throw std::bad_alloc();
     }
-    d6->args = (Shiro::GameArguments*)argsTemp;
+    d6->args = (Shiro::GameArguments *)argsTemp;
 
     d6->args[d6->num - 1].num = 4;
     d6->args[d6->num - 1].ptrs = (void **)malloc(4 * sizeof(void *));
@@ -1167,20 +1173,17 @@ int mload_main(game_t *g, int val)
 
     d6->num++;
     d6->labels.push_back("ULTIMATE ACID RAIN");
-    void* argsTemp2 = realloc(d6->args, d6->num * sizeof(Shiro::GameArguments));
+    void *argsTemp2 = realloc(d6->args, d6->num * sizeof(Shiro::GameArguments));
     if(!argsTemp2)
     {
         throw std::bad_alloc();
     }
-    d6->args = (Shiro::GameArguments*)argsTemp2;
+    d6->args = (Shiro::GameArguments *)argsTemp2;
 
     d6->args[d6->num - 1].num = 4;
-    if (
-        !(d6->args[d6->num - 1].ptrs = (void**)malloc(4 * sizeof(void*))) ||
-        !(d6->args[d6->num - 1].ptrs[0] = malloc(sizeof(CoreState*))) ||
-        !(d6->args[d6->num - 1].ptrs[1] = malloc(sizeof(int))) ||
-        !(d6->args[d6->num - 1].ptrs[2] = malloc(sizeof(unsigned int))) ||
-        !(d6->args[d6->num - 1].ptrs[3] = malloc(sizeof(char*))))
+    if(!(d6->args[d6->num - 1].ptrs = (void **)malloc(4 * sizeof(void *))) || !(d6->args[d6->num - 1].ptrs[0] = malloc(sizeof(CoreState *))) ||
+       !(d6->args[d6->num - 1].ptrs[1] = malloc(sizeof(int))) || !(d6->args[d6->num - 1].ptrs[2] = malloc(sizeof(unsigned int))) ||
+       !(d6->args[d6->num - 1].ptrs[3] = malloc(sizeof(char *))))
     {
         throw std::bad_alloc();
     }
@@ -1333,7 +1336,7 @@ int mload_main(game_t *g, int val)
     d2->num = 101;
     d2->param = &g->origin->settings.sfxVolume;
     d2->vals = (int *)malloc(101 * sizeof(int));
-    if (!d2->vals)
+    if(!d2->vals)
     {
         throw std::bad_alloc();
     }
@@ -1358,7 +1361,7 @@ int mload_main(game_t *g, int val)
     d2->num = 101;
     d2->param = &g->origin->settings.musicVolume;
     d2->vals = (int *)malloc(101 * sizeof(int));
-    if (!d2->vals)
+    if(!d2->vals)
     {
         throw std::bad_alloc();
     }
@@ -1397,7 +1400,7 @@ int mload_main(game_t *g, int val)
     return 0;
 }
 
-int mload_practice(game_t *g, int val)
+int mload_practice(game_t *g)
 {
     CoreState *cs = g->origin;
     menudata *d = (menudata *)(g->data);
@@ -1444,7 +1447,7 @@ int mload_practice(game_t *g, int val)
     else
         pracdata_mirror_existed = 1;
 
-    //cs->bg.transition();
+    // cs->bg.transition();
     cs->bg.transition(Shiro::ImageAsset::get(cs->assetMgr, "multi_editor_bg"));
 
     Shiro::MusicAsset::get(cs->assetMgr, "multi_editor_bgm").play(cs->settings);
@@ -1761,7 +1764,7 @@ int mload_practice(game_t *g, int val)
     d2->num = 101;
     d2->param = &q->pracdata->usr_timings->lock;
     d2->vals = (int *)malloc(101 * sizeof(int));
-    if (!d2->vals)
+    if(!d2->vals)
     {
         throw std::bad_alloc();
     }
@@ -1807,7 +1810,7 @@ int mload_practice(game_t *g, int val)
     d2->num = 100;
     d2->param = &q->pracdata->usr_timings->are;
     d2->vals = (int *)malloc(100 * sizeof(int));
-    if (!d2->vals)
+    if(!d2->vals)
     {
         throw std::bad_alloc();
     }
@@ -1851,7 +1854,7 @@ int mload_practice(game_t *g, int val)
     d2->num = 100;
     d2->param = &q->pracdata->usr_timings->lineare;
     d2->vals = (int *)malloc(100 * sizeof(int));
-    if (!d2->vals)
+    if(!d2->vals)
     {
         throw std::bad_alloc();
     }
@@ -1895,7 +1898,7 @@ int mload_practice(game_t *g, int val)
     d2->num = 100;
     d2->param = &q->pracdata->usr_timings->lineclear;
     d2->vals = (int *)malloc(100 * sizeof(int));
-    if (!d2->vals)
+    if(!d2->vals)
     {
         throw std::bad_alloc();
     }
@@ -1939,7 +1942,7 @@ int mload_practice(game_t *g, int val)
     d2->num = 99;
     d2->param = &q->pracdata->usr_timings->das;
     d2->vals = (int *)malloc(99 * sizeof(int));
-    if (!d2->vals)
+    if(!d2->vals)
     {
         throw std::bad_alloc();
     }
@@ -1983,7 +1986,7 @@ int mload_practice(game_t *g, int val)
     d2->num = 101;
     d2->param = &q->pracdata->garbage_delay;
     d2->vals = (int *)malloc(101 * sizeof(int));
-    if (!d2->vals)
+    if(!d2->vals)
     {
         throw std::bad_alloc();
     }
@@ -2031,7 +2034,7 @@ int mload_practice(game_t *g, int val)
     d2->num = 5;
     d2->param = &q->pracdata->field_w;
     d2->vals = (int *)malloc(5 * sizeof(int));
-    if (!d2->vals)
+    if(!d2->vals)
     {
         throw std::bad_alloc();
     }
@@ -2072,11 +2075,11 @@ int mload_practice(game_t *g, int val)
     d2->num = 4;
 
     // TODO: This will be rewritten in another way.
-    //d2->param = &q->pracdata->game_type;
+    // d2->param = &q->pracdata->game_type;
     d2->param = &q->pracdata->game_type_int;
 
     d2->vals = (int *)malloc(4 * sizeof(int));
-    if (!d2->vals)
+    if(!d2->vals)
     {
         throw std::bad_alloc();
     }
@@ -2285,7 +2288,7 @@ int mload_practice(game_t *g, int val)
     undoClearButton.active = false;
     undoClearButton.activate_check = undo_clear_button_should_activate;
     undoClearButton.deactivate_check = undo_clear_button_should_deactivate;
-    undoClearButton.x = 81; // old: QRS_FIELD_X + (16 * 16) - 6;
+    undoClearButton.x = 81;  // old: QRS_FIELD_X + (16 * 16) - 6;
     undoClearButton.y = 443; // old: QRS_FIELD_Y + 23 * 16 + 8 - 6;
     undoClearButton.w = 2 * 6 + 15 * (undoClearButton.text.size());
     undoClearButton.h = 28;
@@ -2296,7 +2299,7 @@ int mload_practice(game_t *g, int val)
     doUndoButton.action = usr_field_undo_button_action;
     doUndoButton.text = "";
     doUndoButton.active = false;
-    //doUndoButton.visible = false;
+    // doUndoButton.visible = false;
     doUndoButton.activate_check = usr_field_undo_history_exists;
     doUndoButton.deactivate_check = usr_field_undo_history_not_exists;
     doUndoButton.x = QRS_FIELD_X - 4;
@@ -2309,7 +2312,7 @@ int mload_practice(game_t *g, int val)
     doRedoButton.action = usr_field_redo_button_action;
     doRedoButton.text = "";
     doRedoButton.active = false;
-    //doRedoButton.visible = false;
+    // doRedoButton.visible = false;
     doRedoButton.activate_check = usr_field_redo_history_exists;
     doRedoButton.deactivate_check = usr_field_redo_history_not_exists;
     doRedoButton.x = QRS_FIELD_X + 13 * 16 + 2 + 7;
@@ -2356,7 +2359,7 @@ int mload_practice(game_t *g, int val)
     return 0;
 }
 
-int mload_options(game_t *g, int val)
+int mload_options(game_t *g)
 {
     if(!g)
         return -1;
@@ -2381,7 +2384,7 @@ int mload_options(game_t *g, int val)
 
 #define BUF_SIZE 64
 
-int mload_replay(game_t *g, int val)
+int mload_replay(game_t *g)
 {
     menudata *d = (menudata *)(g->data);
     Shiro::MenuOption *m = NULL;
@@ -2431,12 +2434,8 @@ int mload_replay(game_t *g, int val)
             d4 = (Shiro::GameOptionData *)m->data;
             d4->mode = QUINTESSE;
             d4->args.num = 4;
-            if (
-                !(d4->args.ptrs = (void **)malloc(4 * sizeof(void *))) ||
-                !(d4->args.ptrs[0] = malloc(sizeof(CoreState *))) ||
-                !(d4->args.ptrs[1] = malloc(sizeof(int))) ||
-                !(d4->args.ptrs[2] = malloc(sizeof(unsigned int))) ||
-                !(d4->args.ptrs[3] = malloc(sizeof(int))))
+            if(!(d4->args.ptrs = (void **)malloc(4 * sizeof(void *))) || !(d4->args.ptrs[0] = malloc(sizeof(CoreState *))) ||
+               !(d4->args.ptrs[1] = malloc(sizeof(int))) || !(d4->args.ptrs[2] = malloc(sizeof(unsigned int))) || !(d4->args.ptrs[3] = malloc(sizeof(int))))
             {
                 throw std::bad_alloc();
             }
@@ -2451,8 +2450,14 @@ int mload_replay(game_t *g, int val)
         }
     }
 
-    auto activateLambda = [](CoreState *cs) { int c = ((SDL_GetModState() & KMOD_SHIFT) != 0); return c; };
-    auto deactivateLambda = [](CoreState *cs) { int c = ((SDL_GetModState() & KMOD_SHIFT) == 0); return c; };
+    auto activateLambda = [](CoreState *) {
+        int c = ((SDL_GetModState() & SDL_KMOD_SHIFT) != 0);
+        return c;
+    };
+    auto deactivateLambda = [](CoreState *) {
+        int c = ((SDL_GetModState() & SDL_KMOD_SHIFT) == 0);
+        return c;
+    };
 
     gfx_button deleteReplayButton;
     deleteReplayButton.type = BUTTON_TYPE_ACTION;
@@ -2474,7 +2479,7 @@ int mload_replay(game_t *g, int val)
     return 0;
 }
 
-int menu_action_quit(game_t *g, int val) { return 1; }
+int menu_action_quit(game_t *) { return 1; }
 
 int menu_is_practice(game_t *g)
 {

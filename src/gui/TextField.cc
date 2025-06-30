@@ -1,20 +1,19 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstdint>
-#include <cstddef>
+#include "SDL3/SDL.h"
+#include "SDL3_image/SDL_image.h"
 #include <chrono>
-#include <vector>
+#include <cstddef>
+#include <cstdint>
+#include <fstream>
+#include <iostream>
 #include <map>
-#include "SDL.h"
-#include "SDL_image.h"
+#include <sstream>
+#include <vector>
 
 #include "GUI.h"
 
 #define TEXT_POSITION_NONE 0xFFFFFFFFu
 
-TextField::TextField(int ID, BindableString *var, BitFont& font, SDL_Rect relativeDestRect)
-    : font(font)
+TextField::TextField(int ID, BindableString *var, BitFont &font, SDL_FRect relativeDestRect) : font(font)
 {
     this->ID = ID;
     this->var = var;
@@ -46,7 +45,7 @@ TextField::TextField(int ID, BindableString *var, BitFont& font, SDL_Rect relati
     verticalScroll = true;
 }
 
-TextField::TextField(int ID, BindableString *var, std::string valueDefault, BitFont& font, SDL_Rect relativeDestRect)
+TextField::TextField(int ID, BindableString *var, std::string valueDefault, BitFont &font, SDL_FRect relativeDestRect)
     : TextField(ID, var, font, relativeDestRect)
 {
     if(!valueDefault.empty())
@@ -55,23 +54,17 @@ TextField::TextField(int ID, BindableString *var, std::string valueDefault, BitF
     }
 }
 
-TextField::~TextField()
-{
+TextField::~TextField() {}
 
-}
-
-void TextField::setTextFormat(TextFormat& fmt)
-{
-    this->fmt = fmt;
-}
+void TextField::setTextFormat(TextFormat &fmt) { this->fmt = fmt; }
 
 void TextField::draw()
 {
-    this->prepareRenderTarget(false);
+    this->prepareRenderTarget();
 
     if(updatePositionalValues)
     {
-        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues, horizontalScroll, verticalScroll);
+        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues);
         updatePositionalValues = false;
     }
 
@@ -80,8 +73,9 @@ void TextField::draw()
 
     if(selectionStart == selectionEnd)
     {
-        drawGUITextPV(value, &fmt, font, textPositionalValues, scrollPosX, scrollPosY);
-    } else
+        drawGUITextPV(value, &fmt, font, textPositionalValues);
+    }
+    else
     {
         TextFormat selectionFmt = fmt;
         selectionFmt.rgba = 0x000000FF;
@@ -90,9 +84,9 @@ void TextField::draw()
         unsigned int start = selectionStart < selectionEnd ? selectionStart : selectionEnd;
         unsigned int end = selectionStart < selectionEnd ? selectionEnd : selectionStart;
 
-        drawGUITextPartialPV(value, 0, start, &fmt, font, textPositionalValues, scrollPosX, scrollPosY);
-        drawGUITextPartialPV(value, start, end - start, &selectionFmt, font, textPositionalValues, scrollPosX, scrollPosY);
-        drawGUITextPartialPV(value, end, (unsigned)value.size() - end, &fmt, font, textPositionalValues, scrollPosX, scrollPosY);
+        drawGUITextPartialPV(value, 0, start, &fmt, font, textPositionalValues);
+        drawGUITextPartialPV(value, start, end - start, &selectionFmt, font, textPositionalValues);
+        drawGUITextPartialPV(value, end, (unsigned)value.size() - end, &fmt, font, textPositionalValues);
     }
 
     bool cursorBlinkOn = false;
@@ -106,7 +100,8 @@ void TextField::draw()
     if(ms - lastEventTime < 400)
     {
         cursorBlinkOn = false;
-    } else
+    }
+    else
     {
         typing = false;
     }
@@ -118,25 +113,28 @@ void TextField::draw()
 
     if(cursorBlinkOn && this->hasKeyboardFocus)
     {
-        SDL_Rect cursorRect;
+        SDL_FRect cursorRect;
         if(cursor < textPositionalValues.size())
         {
             cursorRect.x = std::get<0>(textPositionalValues[cursor]);
             cursorRect.y = std::get<1>(textPositionalValues[cursor]);
-        } else if(textPositionalValues.size() != 0)
+        }
+        else if(textPositionalValues.size() != 0)
         {
             if(value[textPositionalValues.size() - 1] == '\n')
             {
                 cursorRect.x = relativeDestRect.x;
                 cursorRect.y = std::get<1>(textPositionalValues[textPositionalValues.size() - 1]);
                 cursorRect.y += static_cast<int>(fmt.lineSpacing * fmt.sizeMult * (float)font.charH);
-            } else
+            }
+            else
             {
                 cursorRect.x = std::get<0>(textPositionalValues[textPositionalValues.size() - 1]);
                 cursorRect.y = std::get<1>(textPositionalValues[textPositionalValues.size() - 1]);
                 cursorRect.x += static_cast<int>((float)font.charW * fmt.sizeMult);
             }
-        } else
+        }
+        else
         {
             cursorRect.x = relativeDestRect.x;
             cursorRect.y = relativeDestRect.y;
@@ -156,28 +154,30 @@ void TextField::draw()
     }
 }
 
-void TextField::handleEvent(GUIEvent& event)
+void TextField::handleEvent(GUIEvent &event)
 {
     SDL_Cursor *sdlCursor = NULL;
     switch(event.type)
     {
         case mouse_hovered_onto:
-            sdlCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
+            sdlCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_TEXT);
             if(sdlCursor != NULL)
             {
                 SDL_SetCursor(sdlCursor);
-            } else
+            }
+            else
             {
                 std::cout << "TextField::handleEvent(): Error: SDL_CreateSystemCursor(): " << SDL_GetError() << std::endl;
             }
 
             break;
         case mouse_hovered_off:
-            sdlCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+            sdlCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
             if(sdlCursor != NULL)
             {
                 SDL_SetCursor(sdlCursor);
-            } else
+            }
+            else
             {
                 std::cout << "TextField::handleEvent(): Error: SDL_CreateSystemCursor(): " << SDL_GetError() << std::endl;
             }
@@ -203,11 +203,11 @@ void TextField::handleEvent(GUIEvent& event)
     }
 }
 
-void TextField::mouseClicked(int x, int y, Uint8 button)
+void TextField::mouseClicked(int x, int y, [[maybe_unused]] Uint8 button)
 {
     if(updatePositionalValues)
     {
-        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues, horizontalScroll, verticalScroll);
+        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues);
         updatePositionalValues = false;
     }
 
@@ -217,19 +217,20 @@ void TextField::mouseClicked(int x, int y, Uint8 button)
         return;
     }
 
-    if(SDL_GetModState() & KMOD_SHIFT && pos != cursor)
+    if(SDL_GetModState() & SDL_KMOD_SHIFT && pos != cursor)
     {
         selectionStart = cursor;
         selectionEnd = pos;
         cursor = pos;
-    } else
+    }
+    else
     {
         cursor = pos;
         selectionStart = selectionEnd = cursor;
     }
 }
 
-void TextField::mouseDragged(int x, int y, Uint8 button)
+void TextField::mouseDragged(int x, int y, Uint8)
 {
     if(!hasKeyboardFocus)
     {
@@ -238,7 +239,7 @@ void TextField::mouseDragged(int x, int y, Uint8 button)
 
     if(updatePositionalValues)
     {
-        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues, horizontalScroll, verticalScroll);
+        generateGUITextPositionalValues(this->value, &fmt, font, relativeDestRect, textPositionalValues);
         updatePositionalValues = false;
     }
 
@@ -252,17 +253,14 @@ void TextField::mouseDragged(int x, int y, Uint8 button)
     cursor = selectionEnd = pos;
 }
 
-void TextField::mouseReleased(int x, int y, Uint8 button)
-{
-
-}
+void TextField::mouseReleased(int, int, Uint8) {}
 
 void TextField::keyPressed(SDL_Keycode kc)
 {
     switch(kc)
     {
-        case SDLK_a:
-            if(SDL_GetModState() & KMOD_CTRL)
+        case SDLK_A:
+            if(SDL_GetModState() & SDL_KMOD_CTRL)
             {
                 shiftCursor((int)(value.size() - cursor));
                 selectionStart = 0;
@@ -271,24 +269,24 @@ void TextField::keyPressed(SDL_Keycode kc)
 
             break;
 
-        case SDLK_c:
-            if(SDL_GetModState() & KMOD_CTRL)
+        case SDLK_C:
+            if(SDL_GetModState() & SDL_KMOD_CTRL)
             {
                 textCopy();
             }
 
             break;
 
-        case SDLK_x:
-            if(SDL_GetModState() & KMOD_CTRL)
+        case SDLK_X:
+            if(SDL_GetModState() & SDL_KMOD_CTRL)
             {
                 textCut();
             }
 
             break;
 
-        case SDLK_v:
-            if(SDL_GetModState() & KMOD_CTRL)
+        case SDLK_V:
+            if(SDL_GetModState() & SDL_KMOD_CTRL)
             {
                 std::string s = {SDL_GetClipboardText()};
                 textInsert(s);
@@ -308,7 +306,8 @@ void TextField::keyPressed(SDL_Keycode kc)
             if(selectionStart != selectionEnd)
             {
                 textDelete();
-            } else if(cursor > 0)
+            }
+            else if(cursor > 0)
             {
                 textDelete(cursor - 1, cursor);
             }
@@ -319,7 +318,8 @@ void TextField::keyPressed(SDL_Keycode kc)
             if(selectionStart != selectionEnd)
             {
                 textDelete();
-            } else if(cursor < value.size())
+            }
+            else if(cursor < value.size())
             {
                 textDelete(cursor, cursor + 1);
             }
@@ -327,11 +327,11 @@ void TextField::keyPressed(SDL_Keycode kc)
             break;
 
         case SDLK_RETURN:
-            textInsert( {"\n"} );
+            textInsert({"\n"});
             break;
 
         case SDLK_TAB:
-            textInsert( {"    "} );
+            textInsert({"    "});
             break;
 
         case SDLK_LEFT:
@@ -349,10 +349,7 @@ void TextField::keyPressed(SDL_Keycode kc)
     }
 }
 
-void TextField::textInput(std::string s)
-{
-    textInsert(s);
-}
+void TextField::textInput(std::string s) { textInsert(s); }
 
 unsigned int TextField::getPositionUnderMouse(int x, int y)
 {
@@ -414,7 +411,8 @@ unsigned int TextField::shiftCursor(int offset)
     if((unsigned)abs(offset) > cursor && offset < 0)
     {
         cursor = 0;
-    } else
+    }
+    else
     {
         cursor += offset;
         if(cursor > value.size())
@@ -423,10 +421,11 @@ unsigned int TextField::shiftCursor(int offset)
         }
     }
 
-    if(SDL_GetModState() & KMOD_SHIFT)
+    if(SDL_GetModState() & SDL_KMOD_SHIFT)
     {
         selectionEnd = cursor;
-    } else
+    }
+    else
     {
         selectionStart = selectionEnd = cursor;
     }

@@ -1,19 +1,21 @@
 #pragma once
-#include "types.h"
-namespace Shiro {
-    struct KeyFlags {
-        bool operator==(const KeyFlags& cmp) const;
-        bool operator!=(const KeyFlags& cmp) const;
+#include <cstdint>
 
-        u8 left;
-        u8 right;
-        u8 up;
-        u8 down;
-        u8 a;
-        u8 b;
-        u8 c;
-        u8 d;
-        u8 start;
-        u8 escape;
-    };
-}
+namespace Shiro {
+struct KeyFlags
+{
+    bool operator==(const KeyFlags &cmp) const;
+    bool operator!=(const KeyFlags &cmp) const;
+
+    std::uint8_t left;
+    std::uint8_t right;
+    std::uint8_t up;
+    std::uint8_t down;
+    std::uint8_t a;
+    std::uint8_t b;
+    std::uint8_t c;
+    std::uint8_t d;
+    std::uint8_t start;
+    std::uint8_t escape;
+};
+} // namespace Shiro

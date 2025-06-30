@@ -1,5 +1,5 @@
 #pragma once
-#include "types.h"
+#include "SDL3/SDL.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -7,27 +7,30 @@
 #include <functional>
 #include <list>
 #include <memory>
-#include "SDL.h"
 #include <string>
 #include <utility>
 #include <vector>
+
 namespace Shiro::GUI {
-    using rgba_t = Shiro::u32;
-    constexpr uint8_t TEXT_ALIGN_CENTER = 0x0002;
-    constexpr uint8_t TEXT_OUTLINE = 0x0004;
-    constexpr uint8_t TEXT_SHADOW = 0x0008;
-    constexpr uint8_t TEXT_HIGHLIGHT = 0x0010;
-    constexpr uint8_t TEXT_ALIGN_RIGHT = 0x0020;
-    constexpr rgba_t RGBA_DEFAULT = 0xFFFFFFFF;
-    constexpr rgba_t RGBA_OUTLINE_DEFAULT = 0x000000FF;
-}
+using rgba_t = std::uint32_t;
+constexpr uint8_t TEXT_ALIGN_CENTER = 0x0002;
+constexpr uint8_t TEXT_OUTLINE = 0x0004;
+constexpr uint8_t TEXT_SHADOW = 0x0008;
+constexpr uint8_t TEXT_HIGHLIGHT = 0x0010;
+constexpr uint8_t TEXT_ALIGN_RIGHT = 0x0020;
+constexpr rgba_t RGBA_DEFAULT = 0xFFFFFFFF;
+constexpr rgba_t RGBA_OUTLINE_DEFAULT = 0x000000FF;
+} // namespace Shiro::GUI
+
 extern SDL_Renderer *guiSDLRenderer;
 extern SDL_Texture *guiThemeTexture;
+
 bool initializeGUI(SDL_Renderer *, const char *);
+
 struct BitFont
 // sheets should be 32w x 4h characters in dimensions
 {
-    BitFont() : sheet(NULL), outlineSheet(NULL), charW(0), charH(0) {isValid = false;}
+    BitFont() : sheet(NULL), outlineSheet(NULL), charW(0), charH(0) { isValid = false; }
     BitFont(const char *, const char *, unsigned int, unsigned int);
     ~BitFont();
     bool isValid;
@@ -37,21 +40,15 @@ struct BitFont
     unsigned int charH;
 };
 
-enum class enumAlignment
-{
-    left, right, center, justified
-};
+enum class enumAlignment { left, right, center, justified };
 
 struct TextFormat
 {
-    TextFormat()
-        : TextFormat(0, Shiro::GUI::RGBA_DEFAULT, Shiro::GUI::RGBA_OUTLINE_DEFAULT) {}
+    TextFormat() : TextFormat(0, Shiro::GUI::RGBA_DEFAULT, Shiro::GUI::RGBA_OUTLINE_DEFAULT) {}
 
-    TextFormat(Shiro::GUI::rgba_t rgba, Shiro::GUI::rgba_t rgbaOutline)
-        : TextFormat(0, rgba, rgbaOutline) {}
+    TextFormat(Shiro::GUI::rgba_t rgba, Shiro::GUI::rgba_t rgbaOutline) : TextFormat(0, rgba, rgbaOutline) {}
 
-    TextFormat(unsigned int flags, Shiro::GUI::rgba_t rgba, Shiro::GUI::rgba_t rgbaOutline)
-        : rgba(rgba), rgbaOutline(rgbaOutline)
+    TextFormat(unsigned int flags, Shiro::GUI::rgba_t rgba, Shiro::GUI::rgba_t rgbaOutline) : rgba(rgba), rgbaOutline(rgbaOutline)
     {
         rgbaHighlight = 0x8080FFFF;
 
@@ -66,7 +63,8 @@ struct TextFormat
         if(flags & Shiro::GUI::TEXT_ALIGN_RIGHT)
         {
             alignment = enumAlignment::right;
-        } else if(flags & Shiro::GUI::TEXT_ALIGN_CENTER)
+        }
+        else if(flags & Shiro::GUI::TEXT_ALIGN_CENTER)
         {
             alignment = enumAlignment::center;
         }
@@ -86,29 +84,25 @@ struct TextFormat
     unsigned int wrapLen;
 };
 
-enum GUIEventType
-{
-event_invalid = 0,
-mouse_guievent = 0x1000,
+enum GUIEventType {
+    event_invalid = 0,
+    mouse_guievent = 0x1000,
     mouse_clicked,
     mouse_released,
     mouse_dragged,
     mouse_hovered_onto,
     mouse_hovered_off,
     mouse_moved,
-key_guievent = 0x2000,
+    key_guievent = 0x2000,
     key_pressed,
     key_released,
-textinput_guievent = 0x2FFF,
-joy_guievent = 0x4000,
+    textinput_guievent = 0x2FFF,
+    joy_guievent = 0x4000,
     joybutton_pressed,
     joybutton_released
 };
 
-enum enumMouseButtonType
-{
-    mouse_button_left, mouse_button_middle, mouse_button_right
-};
+enum enumMouseButtonType { mouse_button_left, mouse_button_middle, mouse_button_right };
 
 struct GUIPoint
 {
@@ -132,7 +126,7 @@ struct GUIMouseEvent
 };
 struct GUIKeyEvent
 {
-    GUIKeyEvent() {key = SDLK_UNKNOWN;}
+    GUIKeyEvent() { key = SDLK_UNKNOWN; }
     GUIKeyEvent(SDL_Keycode kc) : key(kc) {}
 
     SDL_Keycode key;
@@ -149,8 +143,7 @@ struct GUITextInputEvent
 struct GUIEvent
 {
     GUIEvent() : type(event_invalid), eventUnion(nullptr) {}
-    GUIEvent(GUIEventType type, int x, int y, Uint8 button)
-        : type(type), eventUnion(nullptr), mouseEvent(x, y, button)
+    GUIEvent(GUIEventType type, int x, int y, Uint8 button) : type(type), eventUnion(nullptr), mouseEvent(x, y, button)
     {
         switch(type)
         {
@@ -177,8 +170,7 @@ struct GUIEvent
         }
     }
 
-    GUIEvent(GUIEventType type, SDL_Keycode kc)
-        : type(type), keyEvent(kc)
+    GUIEvent(GUIEventType type, SDL_Keycode kc) : type(type), keyEvent(kc)
     {
         switch(type)
         {
@@ -194,16 +186,11 @@ struct GUIEvent
         }
     }
 
-    GUIEvent(GUIEventType type, std::string s)
-        : type(type), typingEvent(s)
-    {
-        textInputEvent = &typingEvent;
-    }
+    GUIEvent(GUIEventType type, std::string s) : type(type), typingEvent(s) { textInputEvent = &typingEvent; }
 
     GUIEventType type;
 
-    union
-    {
+    union {
         GUIMouseEvent *mouseClickedEvent;
         GUIMouseEvent *mouseReleasedEvent;
         GUIMouseEvent *mouseDraggedEvent;
@@ -219,7 +206,7 @@ struct GUIEvent
         void *eventUnion;
     };
 
-private:
+  private:
     GUIMouseEvent mouseEvent;
     GUIKeyEvent keyEvent;
     GUITextInputEvent typingEvent;
@@ -230,41 +217,35 @@ class Window;
 class GUIElement
 // base class for all gui objects
 {
-public:
-    GUIElement() : containingWindow(nullptr), relativeDestRect({ 0, 0, 0, 0 }) {}
+  public:
+    GUIElement() : containingWindow(nullptr), relativeDestRect({0, 0, 0, 0}) {}
     virtual ~GUIElement() {};
 
     virtual void draw() = 0;
-    void prepareRenderTarget(bool);
-    void setWindow(Window& w)
-    {
-        containingWindow = &w;
-    }
-    Window *getWindow()
-    {
-        return containingWindow;
-    }
+    void prepareRenderTarget();
+    void setWindow(Window &w) { containingWindow = &w; }
+    Window *getWindow() { return containingWindow; }
 
-protected:
+  protected:
     Window *containingWindow;
     // relativeDestRect's x, y fields are relative to container's canvas texture
-    SDL_Rect relativeDestRect;
+    SDL_FRect relativeDestRect;
 };
 
 class GUIText : public GUIElement
 // simple text box with (probably) unchanging text, can be used for explanations and tooltips
 {
-public:
-    GUIText(std::string, BitFont&, SDL_Rect&);
+  public:
+    GUIText(std::string, BitFont &, SDL_FRect &);
     ~GUIText() {}
 
     void draw();
 
-private:
+  private:
     std::string text;
     std::vector<std::pair<int, int>> textPositionalValues;
     TextFormat fmt;
-    BitFont& font;
+    BitFont &font;
 
     bool updatePositionalValues;
 };
@@ -272,16 +253,18 @@ private:
 class GUIInteractable : public GUIElement
 // base class for all gui elements than can be interacted with
 {
-public:
-    GUIInteractable() :
-        enabled(false),
-        canHoldKeyboardFocus(false),
-        hasDefaultKeyboardFocus(false),
-        ID(0),
-        selected(false),
-        hasKeyboardFocus(false),
-        displayTexture(nullptr),
-        updateDisplayStringPVs(false) {}
+  public:
+    GUIInteractable()
+        : enabled(false)
+        , canHoldKeyboardFocus(false)
+        , hasDefaultKeyboardFocus(false)
+        , ID(0)
+        , selected(false)
+        , hasKeyboardFocus(false)
+        , displayTexture(nullptr)
+        , updateDisplayStringPVs(false)
+    {
+    }
 
     // canInteractAt: checks if the given mouse X and Y are inside the element's rectangle,
     // and if the element is enabled. if so, either perform some action or let the user do so
@@ -292,7 +275,7 @@ public:
     virtual void keyPressed(SDL_Keycode) {}
     virtual void textInput(std::string) {}
 
-    virtual void handleEvent(GUIEvent&);
+    virtual void handleEvent(GUIEvent &);
 
     bool enabled;
     bool canHoldKeyboardFocus;
@@ -303,7 +286,7 @@ public:
     bool selected;
     bool hasKeyboardFocus;
 
-protected:
+  protected:
     std::string displayString;
     std::vector<std::pair<int, int>> displayStringPositionalValues;
     SDL_Texture *displayTexture;
@@ -314,86 +297,73 @@ class BindableVariable;
 
 class VariableObserver
 {
-public:
+  public:
     virtual ~VariableObserver() {}
     virtual void call(BindableVariable *) = 0;
 };
 
 class StaticVariableObserver : public VariableObserver
 {
-public:
+  public:
     StaticVariableObserver(std::function<void(BindableVariable *)> func) : func(func) {}
-    virtual void call(BindableVariable *bv) override
-    {
-        func(bv);
-    }
+    virtual void call(BindableVariable *bv) override { func(bv); }
 
-protected:
+  protected:
     std::function<void(BindableVariable *)> func;
 };
 
-template<typename T>
-class IndirectObjVariableObserver : public VariableObserver
+template <typename T> class IndirectObjVariableObserver : public VariableObserver
 {
-public:
-    IndirectObjVariableObserver(T& obj, void (*proxy)(T&, BindableVariable *)) : obj(obj), proxy(proxy) {}
-    virtual void call(BindableVariable *bv) override
-    {
-        proxy(obj, bv);
-    }
+  public:
+    IndirectObjVariableObserver(T &obj, void (*proxy)(T &, BindableVariable *)) : obj(obj), proxy(proxy) {}
+    virtual void call(BindableVariable *bv) override { proxy(obj, bv); }
 
-protected:
-    T& obj;
-    void (*proxy)(T&, BindableVariable *);
+  protected:
+    T &obj;
+    void (*proxy)(T &, BindableVariable *);
 };
 
 class MemberVariableObserver : public VariableObserver
 {
-public:
+  public:
     MemberVariableObserver(std::function<void(BindableVariable *)> membFunc) : membFunc(membFunc) {}
-    virtual void call(BindableVariable *bv) override
-    {
-        membFunc(bv);
-    }
+    virtual void call(BindableVariable *bv) override { membFunc(bv); }
 
-protected:
+  protected:
     std::function<void(BindableVariable *)> membFunc;
 };
 
 class BindableVariable
 {
-public:
-    BindableVariable(const std::string& name) : name_(name) {}
+  public:
+    BindableVariable(const std::string &name) : name_(name) {}
     virtual ~BindableVariable() {}
 
     std::string name() const { return name_; }
-    virtual void set(const std::string& val) = 0;
+    virtual void set(const std::string &val) = 0;
     virtual std::string get() const = 0;
 
-    void addObserver(std::unique_ptr<VariableObserver>& ob)
-    {
-        observers.push_back(std::move(ob));
-    }
+    void addObserver(std::unique_ptr<VariableObserver> &ob) { observers.push_back(std::move(ob)); }
 
-protected:
+  protected:
     void valueChanged()
     {
-        for(auto& ob : observers)
+        for(auto &ob : observers)
         {
             ob->call(this);
         }
     }
 
-private:
+  private:
     const std::string name_;
     std::vector<std::unique_ptr<VariableObserver>> observers;
 };
 
 class BindableString : public BindableVariable
 {
-public:
-    BindableString(const std::string& name) : BindableVariable(name) {}
-    virtual void set(const std::string& val) override
+  public:
+    BindableString(const std::string &name) : BindableVariable(name) {}
+    virtual void set(const std::string &val) override
     {
         if(val != value)
         {
@@ -404,22 +374,20 @@ public:
 
     virtual std::string get() const override { return value; }
 
-private:
+  private:
     std::string value;
 };
 
 class BindableInt : public BindableVariable
 {
-public:
+  public:
     // min is inclusive, max is exclusive
-    BindableInt(const std::string& name, int64_t min, int64_t max)
-        : BindableVariable(name), value(0), min(min), max(max) {}
+    BindableInt(const std::string &name, int64_t min, int64_t max) : BindableVariable(name), value(0), min(min), max(max) {}
 
-    virtual void set(const std::string& val) override { setInt(stoll(val)); }
+    virtual void set(const std::string &val) override { setInt(stoll(val)); }
     virtual std::string get() const override { return std::to_string(getInt()); }
 
-
-    void setInt(int64_t&& val)
+    void setInt(int64_t &&val)
     {
         if(min <= val && val < max)
         {
@@ -433,9 +401,9 @@ public:
 
     int64_t getInt() const { return value; }
 
-    std::pair<int64_t, int64_t> getRange() const { return { min, max }; }
+    std::pair<int64_t, int64_t> getRange() const { return {min, max}; }
 
-protected:
+  protected:
     int64_t value;
     const int64_t min;
     const int64_t max;
@@ -443,11 +411,10 @@ protected:
 
 class BindableEnumeration : public BindableInt
 {
-public:
-    BindableEnumeration(const std::string& name, std::vector<std::string>&& values)
-        : BindableInt(name, 0, values.size()), values(std::move(values)) {}
+  public:
+    BindableEnumeration(const std::string &name, std::vector<std::string> &&values) : BindableInt(name, 0, values.size()), values(std::move(values)) {}
 
-    virtual void set(const std::string& val) override
+    virtual void set(const std::string &val) override
     {
         auto it = std::find(values.begin(), values.end(), val);
         if(it != values.end())
@@ -461,10 +428,7 @@ public:
         }
     };
 
-    virtual std::string get() const override
-    {
-        return displayNameForValue(value);
-    }
+    virtual std::string get() const override { return displayNameForValue(value); }
 
     std::string displayNameForValue(size_t val) const
     {
@@ -472,21 +436,19 @@ public:
         return values[val];
     };
 
-private:
+  private:
     std::vector<std::string> values;
 };
 
 class BindableFloat : public BindableVariable
 {
-public:
-    BindableFloat(const std::string& name, long double min, long double max)
-        : BindableVariable(name), value(0.0), min(min), max(max) {}
+  public:
+    BindableFloat(const std::string &name, long double min, long double max) : BindableVariable(name), value(0.0), min(min), max(max) {}
 
-    virtual void set(const std::string& val) override { setFloat(stold(val)); }
+    virtual void set(const std::string &val) override { setFloat(stold(val)); }
     virtual std::string get() const override { return std::to_string(getFloat()); }
 
-
-    void setFloat(long double&& val)
+    void setFloat(long double &&val)
     {
         if(min <= val && val < max)
         {
@@ -500,9 +462,9 @@ public:
 
     long double getFloat() const { return value; }
 
-    std::pair<long double, long double> getRange() const { return { min, max }; }
+    std::pair<long double, long double> getRange() const { return {min, max}; }
 
-protected:
+  protected:
     long double value;
     const long double min;
     const long double max;
@@ -510,21 +472,21 @@ protected:
 
 class BindableVariables
 {
-public:
+  public:
     void add(std::unique_ptr<BindableVariable> var)
     {
         assert(!find(var->name()));
         vars.emplace_back(std::move(var));
     };
 
-    BindableVariable* find(const std::string& name)
+    BindableVariable *find(const std::string &name)
     {
         if(vars.size() == 0)
         {
             return NULL;
         }
 
-        auto it = std::find_if(vars.begin(), vars.end(), [&name](const auto& p){ return p->name() == name; });
+        auto it = std::find_if(vars.begin(), vars.end(), [&name](const auto &p) { return p->name() == name; });
         if(it != vars.end())
         {
             return it->get();
@@ -533,46 +495,38 @@ public:
         return NULL;
     };
 
-private:
+  private:
     std::vector<std::unique_ptr<BindableVariable>> vars;
 };
 
-enum enumOptionAccess
-{
-    no_access           = 0,
-    use_callback        = 1 << 0,
-    random_access_copy  = 1 << 1,
-    random_access       = 1 << 2
-};
+enum enumOptionAccess { no_access = 0, use_callback = 1 << 0, random_access_copy = 1 << 1, random_access = 1 << 2 };
 
-inline enumOptionAccess operator | (enumOptionAccess a, enumOptionAccess b)
-{ return static_cast<enumOptionAccess>(static_cast<int>(a) | static_cast<int>(b)); }
+inline enumOptionAccess operator|(enumOptionAccess a, enumOptionAccess b) { return static_cast<enumOptionAccess>(static_cast<int>(a) | static_cast<int>(b)); }
 
-inline enumOptionAccess operator |= (enumOptionAccess a, enumOptionAccess b)
-{ return a = a | b; }
+inline enumOptionAccess operator|=(enumOptionAccess a, enumOptionAccess b) { return a = a | b; }
 
 class GUIOptionInteractable : public GUIInteractable
 {
-public:
+  public:
     GUIOptionInteractable() : var(nullptr) {}
 
-protected:
+  protected:
     BindableVariable *var;
 };
 
 class TextField : public GUIOptionInteractable
 // text box which the user can send input to
 {
-public:
-    TextField(int, BindableString *, BitFont&, SDL_Rect);
-    TextField(int, BindableString *, std::string, BitFont&, SDL_Rect);
+  public:
+    TextField(int, BindableString *, BitFont &, SDL_FRect);
+    TextField(int, BindableString *, std::string, BitFont &, SDL_FRect);
     ~TextField();
 
-    void setTextFormat(TextFormat&);
+    void setTextFormat(TextFormat &);
 
     void draw();
 
-    void handleEvent(GUIEvent&);
+    void handleEvent(GUIEvent &);
 
     void mouseClicked(int, int, Uint8);
     void mouseDragged(int, int, Uint8);
@@ -589,11 +543,11 @@ public:
     std::string textCut();
     std::string textCopy();
 
-protected:
+  protected:
     std::vector<std::pair<int, int>> textPositionalValues;
     std::string value;
     TextFormat fmt;
-    BitFont& font;
+    BitFont &font;
     uint64_t lastEventTime;
     bool typing;
     unsigned int cursor;
@@ -612,8 +566,8 @@ protected:
 class Button : public GUIInteractable
 // clickable, causes a direct action to take place, can also be scrolled through with arrow keys or similar
 {
-public:
-    Button(int ID, SDL_Rect relativeDestRect, std::string displayString, BitFont& font);
+  public:
+    Button(int ID, SDL_FRect relativeDestRect, std::string displayString, BitFont &font);
     ~Button();
 
     void draw();
@@ -623,7 +577,7 @@ public:
     void mouseReleased(int, int, Uint8);
     void keyPressed(SDL_Keycode);
 
-protected:
+  protected:
     BitFont &font;
 };
 
@@ -632,18 +586,18 @@ struct CoreState;
 class Window
 // essentially a container for GUIElement with relative positioning, possibly with -oX controls like in a WM
 {
-public:
-    Window(CoreState *origin, std::string, BitFont *, std::function<void(GUIInteractable&, GUIEvent&)>, SDL_Rect&);
+  public:
+    Window(CoreState *origin, std::string, BitFont *, std::function<void(GUIInteractable &, GUIEvent &)>, SDL_FRect &);
     ~Window();
 
     void draw();
 
-    std::string& getTitle() {return title;}
+    std::string &getTitle() { return title; }
 
     void addElement(GUIElement *);
     void addControlElement(GUIInteractable *);
 
-    void handleSDLEvent(SDL_Event&, GUIPoint);
+    void handleSDLEvent(SDL_Event &, GUIPoint);
     GUIInteractable *getControlElementAt(int, int);
 
     void moveRect(int, int);
@@ -657,16 +611,16 @@ public:
 
     CoreState *origin;
     SDL_Texture *canvas;
-    SDL_Rect destRect;
+    SDL_FRect destRect;
 
-protected:
+  protected:
     std::vector<GUIElement *> elements;
     std::vector<GUIInteractable *> controlList;
     int keyboardFocus;
     int controlSelection;
     bool selectingByMouse;
 
-    std::function<void(GUIInteractable&, GUIEvent&)> interactionEventCallback;
+    std::function<void(GUIInteractable &, GUIEvent &)> interactionEventCallback;
 
     Shiro::GUI::rgba_t rgbaBackground;
     Shiro::GUI::rgba_t rgbaTitleBar;
@@ -692,8 +646,8 @@ protected:
 
 class GUIScreen : public Window
 {
-public:
-    GUIScreen(CoreState *origin, std::string title, std::function<void(GUIInteractable&, GUIEvent&)> interactionEventCallback, SDL_Rect& destRect)
+  public:
+    GUIScreen(CoreState *origin, std::string title, std::function<void(GUIInteractable &, GUIEvent &)> interactionEventCallback, SDL_FRect &destRect)
         : Window(origin, title, NULL, interactionEventCallback, destRect)
     {
         name = title;
@@ -709,37 +663,27 @@ public:
     void setParent(std::string p) { parent = p; }
     void addChild(std::string c) { children.push_back(c); }
 
-protected:
+  protected:
     std::string name;
     std::string parent;
     std::vector<std::string> children;
 };
 
-inline Shiro::u8 rgba_R(Shiro::GUI::rgba_t rgba)
-{
-    return (rgba & 0xFF000000) / 0x1000000;
-}
+inline std::uint8_t rgba_R(Shiro::GUI::rgba_t rgba) { return (rgba & 0xFF000000) / 0x1000000; }
 
-inline Shiro::u8 rgba_G(Shiro::GUI::rgba_t rgba)
-{
-    return (rgba & 0x00FF0000) / 0x0010000;
-}
+inline std::uint8_t rgba_G(Shiro::GUI::rgba_t rgba) { return (rgba & 0x00FF0000) / 0x0010000; }
 
-inline Shiro::u8 rgba_B(Shiro::GUI::rgba_t rgba)
-{
-    return (rgba & 0x0000FF00) / 0x0000100;
-}
+inline std::uint8_t rgba_B(Shiro::GUI::rgba_t rgba) { return (rgba & 0x0000FF00) / 0x0000100; }
 
-inline Shiro::u8 rgba_A(Shiro::GUI::rgba_t rgba)
-{
-    return (rgba & 0x000000FF);
-}
+inline std::uint8_t rgba_A(Shiro::GUI::rgba_t rgba) { return (rgba & 0x000000FF); }
 
-inline void GUIElement::prepareRenderTarget(bool isFinalCopy) {
+inline void GUIElement::prepareRenderTarget()
+{
     if(this->containingWindow)
     {
         SDL_SetRenderTarget(guiSDLRenderer, this->containingWindow->canvas);
-    } else
+    }
+    else
     {
         SDL_SetRenderTarget(guiSDLRenderer, NULL);
     }
@@ -751,12 +695,12 @@ inline void setGUITextureRGBA(SDL_Texture *tex, Shiro::GUI::rgba_t rgba)
     SDL_SetTextureAlphaMod(tex, rgba_A(rgba));
 }
 
-void GUIDrawBorder(SDL_Rect&, int, Shiro::GUI::rgba_t);
+void GUIDrawBorder(SDL_FRect &, const float, Shiro::GUI::rgba_t);
 
-void generateGUITextPositionalValues(std::string&, TextFormat *, BitFont&, SDL_Rect&, std::vector<std::pair<int, int>>&, bool, bool);
-void generateGUITextPositionalValuesPartial(std::string&, unsigned int, unsigned int, TextFormat *, BitFont&, SDL_Rect&, std::vector<std::pair<int, int>>&, bool, bool);
+void generateGUITextPositionalValues(std::string &, TextFormat *, BitFont &, SDL_FRect &, std::vector<std::pair<int, int>> &);
+void generateGUITextPositionalValuesPartial(std::string &, unsigned int, unsigned int, TextFormat *, BitFont &, SDL_FRect &, std::vector<std::pair<int, int>> &);
 
-void drawGUITextPV(std::string, TextFormat *, BitFont&, std::vector<std::pair<int, int>>&, unsigned int, unsigned int);
-void drawGUITextPartialPV(std::string, unsigned int, unsigned int, TextFormat *, BitFont&, std::vector<std::pair<int, int>>&, unsigned int, unsigned int);
-void drawGUIText(std::string, TextFormat *, BitFont&, SDL_Rect&);
-void drawGUITextPartial(std::string, unsigned int, unsigned int, TextFormat *, BitFont&, SDL_Rect&);
+void drawGUITextPV(std::string, TextFormat *, BitFont &, std::vector<std::pair<int, int>> &);
+void drawGUITextPartialPV(std::string, unsigned int, unsigned int, TextFormat *, BitFont &, std::vector<std::pair<int, int>> &);
+void drawGUIText(std::string, TextFormat *, BitFont &, SDL_FRect &);
+void drawGUITextPartial(std::string, unsigned int, unsigned int, TextFormat *, BitFont &, SDL_FRect &);

@@ -3,7 +3,7 @@
 namespace Shiro {
     struct ActionOptionData {
         ActionOptionData();
-        int (*action)(game_t *, int);
+        int (*action)(game_t *);
         int val;
     };
 }

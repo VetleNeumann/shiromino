@@ -1,6 +1,6 @@
 #pragma once
 #include "Settings.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <string>
 
 namespace Shiro {

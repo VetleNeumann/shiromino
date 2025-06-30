@@ -87,14 +87,13 @@ game_t *menu_create(CoreState *cs);
 int menu_init(game_t *g);
 int menu_quit(game_t *g);
 int menu_input(game_t *g);
-int menu_frame(game_t *g);
 int menu_clear(game_t *g);
 
-int mload_main(game_t *g, int val);
-int mload_practice(game_t *g, int val);
-int mload_replay(game_t *g, int val);
-int mload_options(game_t *g, int val);
+int mload_main(game_t *g);
+int mload_practice(game_t *g);
+int mload_replay(game_t *g);
+int mload_options(game_t *g);
 
-int menu_action_quit(game_t *g, int val);
+int menu_action_quit(game_t *g);
 int menu_is_practice(game_t *g);
 int menu_is_main(game_t *g);

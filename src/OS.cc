@@ -1,32 +1,33 @@
 #include "OS.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include "definitions.h"
 #include <filesystem>
 
 namespace fs = std::filesystem;
 
-const fs::path& Shiro::OS::getBasePath() {
+const fs::path &Shiro::OS::getBasePath()
+{
     static fs::path basePath;
 
-    if (basePath.empty()) {
+    if(basePath.empty())
+    {
 #ifdef APPIMAGE_BASE_PATH
-		char* const appImageFilename = getenv("APPIMAGE");
-		if (appImageFilename == NULL) {
-			throw std::logic_error("Failed to get AppImage base path.");
-		}
-		else {
-			basePath = fs::path(appImageFilename).remove_filename();
-		}
+        char *const appImageFilename = getenv("APPIMAGE");
+        if(appImageFilename == NULL)
+        {
+            throw std::logic_error("Failed to get AppImage base path.");
+        }
+        else
+        {
+            basePath = fs::path(appImageFilename).remove_filename();
+        }
 #else
-		char* basePathCStr = NULL;
-		if (!(basePathCStr = SDL_GetBasePath())) {
+        const char *basePathCStr = SDL_GetBasePath();
+        if(basePathCStr == NULL)
+        {
             throw std::logic_error("Failed to get SDL base path.");
         }
-        else {
-            basePath = fs::path(basePathCStr);
-            SDL_free(basePathCStr);
-            basePathCStr = NULL;
-        }
+        basePath = fs::path(basePathCStr);
 #endif
     }
 

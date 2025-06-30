@@ -1,7 +1,7 @@
 #pragma once
 #include "asset/Asset.h"
 #include "Settings.h"
-#include "SDL_mixer.h"
+#include "SDL3_mixer/SDL_mixer.h"
 #include <filesystem>
 #include <memory>
 namespace Shiro {

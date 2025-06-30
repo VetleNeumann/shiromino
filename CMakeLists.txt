@@ -1,227 +1,140 @@
-cmake_minimum_required(VERSION 3.19)
-project(shiromino
-	DESCRIPTION "A fast-paced puzzle game with roots in the arcade."
-	HOMEPAGE_URL "https://github.com/shiromino/shiromino"
-	LANGUAGES CXX
-	VERSION 0.2.1
-)
-set(GAME_VERSION "${PROJECT_VERSION}" CACHE STRING "The version of the game.")
+cmake_minimum_required(VERSION 3.31)
+
+# disable due to clang-scan-deps messing up includes
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 0)
+
+project(
+  shiromino
+  DESCRIPTION "A fast-paced puzzle game with roots in the arcade."
+  HOMEPAGE_URL "https://github.com/shiromino/shiromino"
+  LANGUAGES CXX
+  VERSION 0.2.1)
+set(GAME_VERSION
+    "${PROJECT_VERSION}"
+    CACHE STRING "The version of the game.")
 set(GAME_EXECUTABLE ${PROJECT_NAME})
 set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(PORTABLE "Selects whether the build should be \"portable\", where all files are bundled together in one distributable folder/package.")
-option(APPIMAGE_BASE_PATH "Selects whether an AppImage build should use the directory where the AppImage is located for the base path, instead of the the contents of the AppImage itself.")
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if(DEFINED ENV{LIBCXX_INCLUDE} AND DEFINED ENV{GLIBC_INCLUDE})
+    add_compile_options(-nostdinc++ -isystem$ENV{LIBCXX_INCLUDE}
+                        -isystem$ENV{GLIBC_INCLUDE})
+  endif()
+
+  if(DEFINED ENV{LIBCXX_LIBDIR})
+    add_link_options(-stdlib=libc++ -L$ENV{LIBCXX_LIBDIR})
+  endif()
+endif()
+
+option(
+  PORTABLE
+  "Selects whether the build should be \"portable\", where all files are bundled together in one distributable folder/package."
+)
+option(
+  APPIMAGE_BASE_PATH
+  "Selects whether an AppImage build should use the directory where the AppImage is located for the base path, instead of the the contents of the AppImage itself."
+)
+
+cmake_policy(SET CMP0169 OLD)
 
 #
 # Basic project layout
 #
 if(PORTABLE AND APPLE)
-	add_executable(${GAME_EXECUTABLE} MACOSX_BUNDLE "${CMAKE_SOURCE_DIR}/icon.icns")
-	set_source_files_properties("${CMAKE_SOURCE_DIR}/icon.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  add_executable(${GAME_EXECUTABLE} MACOSX_BUNDLE
+                 ${GAME_SOURCES} "${CMAKE_SOURCE_DIR}/icon.icns")
+  set_source_files_properties("${CMAKE_SOURCE_DIR}/icon.icns"
+                              PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 elseif(WIN32 AND MSVC)
-	add_executable(${GAME_EXECUTABLE} "${CMAKE_SOURCE_DIR}/cmake/icon.rc")
+  add_executable(${GAME_EXECUTABLE} ${GAME_SOURCES}
+                                    "${CMAKE_SOURCE_DIR}/cmake/icon.rc")
 else()
-	add_executable(${GAME_EXECUTABLE})
+  add_executable(${GAME_EXECUTABLE} ${GAME_SOURCES})
 endif()
+
 target_include_directories(${GAME_EXECUTABLE} PRIVATE src)
 target_include_directories(${GAME_EXECUTABLE} SYSTEM PRIVATE third-party)
+
+file(GLOB_RECURSE GAME_SOURCES src/*.cc src/*.h)
+target_sources(${GAME_EXECUTABLE} PRIVATE ${GAME_SOURCES} third-party/PDINI.h)
+
 #
 # Put the git hash into the game if possible
 #
 find_package(Git)
 if(GIT_FOUND)
-	set(GIT_COMMIT_HASH unknown)
-	execute_process(COMMAND
-		${GIT_EXECUTABLE} describe --always --dirty=*
-		ERROR_QUIET
-		OUTPUT_VARIABLE GIT_COMMIT_HASH
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-	)
+  set(GIT_COMMIT_HASH unknown)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} describe --always --dirty=*
+    ERROR_QUIET
+    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 endif()
 #
 # Dynamic headers
 #
-set(EXECUTABLE_DYNAMIC_HEADER_DIRECTORY "${CMAKE_BINARY_DIR}/${GAME_EXECUTABLE}-dynamic/include")
-configure_file(include/definitions.h.in "${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}/definitions.h" @ONLY)
-configure_file(include/Version.h.in "${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}/Version.h" @ONLY)
-target_sources(${GAME_EXECUTABLE}
-	PRIVATE
-		"${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}/definitions.h"
-		"${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}/Version.h"
-)
-target_include_directories(${GAME_EXECUTABLE} PRIVATE "${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}")
-#
-# Sources needed to build the game
-#
-target_sources(${GAME_EXECUTABLE}
-	PRIVATE
-		src/asset/Asset.cc
-		src/asset/Asset.h
-		src/asset/Font.cc
-		src/asset/Font.h
-		src/asset/Image.cc
-		src/asset/Image.h
-		src/asset/Music.cc
-		src/asset/Music.h
-		src/asset/Sfx.cc
-		src/asset/Sfx.h
-		src/AssetStore.h
-		src/CoreState.h
-		src/Credits.cc
-		src/Credits.h
-		src/Debug.h
-		src/DisplayMode.h
-		src/Game.cc
-		src/Game.h
-		src/GameType.h
-		src/Grid.cc
-		src/Grid.h
-		src/input/ControllerBindings.cc
-		src/input/ControllerBindings.h
-		src/input/KeyBindings.cc
-		src/input/KeyBindings.h
-		src/input/KeyFlags.cc
-		src/input/KeyFlags.h
-		src/input/Mouse.cc
-		src/input/Mouse.h
-		src/main.cc
-		src/menu/ActionOption.h
-		src/menu/ElementType.h
-		src/menu/GameArguments.h
-		src/menu/GameMultiOption.h
-		src/menu/GameOption.h
-		src/menu/MetaGameOption.h
-		src/menu/MultiOption.h
-		src/menu/Option.cc
-		src/menu/Option.h
-		src/menu/TextOption.h
-		src/menu/ToggleOption.h
-		src/Delay.cc
-		src/Delay.h
-		src/Nanotime.cc
-		src/OS.cc
-		src/OS.h
-		src/PieceDefinition.cc
-		src/PieceDefinition.h
-		src/Player.h
-		src/QRS.cc
-		src/QRS0.h
-		src/QRS1.h
-		src/Records.cc
-		src/Records.h
-		src/RefreshRates.h
-		src/RotationTables.cc
-		src/RotationTables.h
-		src/SPM_Randomizer.cc
-		src/SPM_Randomizer.h
-		src/SPM_Spec.cc
-		src/SPM_Spec.h
-		src/Settings.cc
-		src/Settings.h
-		src/ShiroPhysoMino.cc
-		src/ShiroPhysoMino.h
-		src/TGM.h
-		src/Timer.cc
-		src/Timer.h
-		src/video/Animation.cc
-		src/video/Animation.h
-		src/video/Background.cc
-		src/video/Background.h
-		src/video/Gfx.cc
-		src/video/Gfx.h
-		src/video/MessageEntity.cc
-		src/video/MessageEntity.h
-		src/video/Render.cc
-		src/video/Render.h
-		src/video/Screen.cc
-		src/video/Screen.h
-		src/video/TextGraphic.cc
-		src/video/TextGraphic.h
-		src/core.cc
-		src/fonts.h
-		src/game_menu.cc
-		src/game_menu.h
-		src/game_qs.cc
-		src/game_qs.h
-		src/gfx_helpers.cc
-		src/gfx_helpers.h
-		src/gfx_menu.cc
-		src/gfx_menu.h
-		src/gfx_old.cc
-		src/gfx_old.h
-		src/gfx_qs.cc
-		src/gfx_qs.h
-		src/gfx_structures.h
-		src/gui/Button.cc
-		src/gui/GUI.cc
-		src/gui/GUI.h
-		src/gui/GridCanvas.cc
-		src/gui/GridCanvas.h
-		src/gui/ScreenManager.cc
-		src/gui/ScreenManager.h
-		src/gui/TextField.cc
-		src/gui/Window.cc
-		src/images.h
-		src/random.cc
-		src/random.h
-		src/replay.cc
-		src/replay.h
-		src/stringtools.h
-		third-party/PDINI.h
-)
+set(EXECUTABLE_DYNAMIC_HEADER_DIRECTORY
+    "${CMAKE_BINARY_DIR}/${GAME_EXECUTABLE}-dynamic/include")
+configure_file(include/definitions.h.in
+               "${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}/definitions.h" @ONLY)
+configure_file(include/Version.h.in
+               "${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}/Version.h" @ONLY)
+target_sources(
+  ${GAME_EXECUTABLE}
+  PRIVATE "${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}/definitions.h"
+          "${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}/Version.h")
+target_include_directories(${GAME_EXECUTABLE}
+                           PRIVATE "${EXECUTABLE_DYNAMIC_HEADER_DIRECTORY}")
+
 #
 # External git project management
 #
 include(FetchContent)
-FetchContent_Declare(pdbm_font
-	GIT_REPOSITORY https://github.com/nightmareci/PDBMFont.git
-	GIT_TAG f16abc76419f2df31c8c3f0642bedaad99201cda
-)
+FetchContent_Declare(
+  pdbm_font
+  GIT_REPOSITORY https://github.com/nightmareci/PDBMFont.git
+  GIT_TAG f16abc76419f2df31c8c3f0642bedaad99201cda)
 # We don't use FetchContent_MakeAvailable for PDBMFont nor nanotime. The reason
 # is that those projects' build pipelines don't cleanly export any targets that
 # we can use.
 FetchContent_GetProperties(pdbm_font)
 if(NOT pdbm_font_POPULATED)
-	FetchContent_Populate(pdbm_font)
+  FetchContent_Populate(pdbm_font)
 endif()
-FetchContent_GetProperties(pdbm_font
-	SOURCE_DIR PDBM_SOURCE_DIRECTORY
-)
-target_sources(${GAME_EXECUTABLE}
-	PRIVATE
-		"${PDBM_SOURCE_DIRECTORY}/PDBMFont.hpp"
-		"${PDBM_SOURCE_DIRECTORY}/tinyxml2.cpp"
-		"${PDBM_SOURCE_DIRECTORY}/tinyxml2.h"
-)
-target_include_directories(${GAME_EXECUTABLE}
-	PRIVATE
-		"${PDBM_SOURCE_DIRECTORY}"
-)
+FetchContent_GetProperties(pdbm_font SOURCE_DIR PDBM_SOURCE_DIRECTORY)
+target_sources(
+  ${GAME_EXECUTABLE}
+  PRIVATE "${PDBM_SOURCE_DIRECTORY}/PDBMFont.hpp"
+          "${PDBM_SOURCE_DIRECTORY}/tinyxml2.cpp"
+          "${PDBM_SOURCE_DIRECTORY}/tinyxml2.h")
+target_include_directories(${GAME_EXECUTABLE} SYSTEM
+                           PRIVATE "${PDBM_SOURCE_DIRECTORY}")
 if(UNIX OR MINGW)
-	target_compile_definitions(${GAME_EXECUTABLE} PRIVATE _POSIX_VERSION=200112L)
+  target_compile_definitions(${GAME_EXECUTABLE} PRIVATE _POSIX_VERSION=200112L)
 endif()
-FetchContent_Declare(nanotime
-	GIT_REPOSITORY https://github.com/nightmareci/nanotime.git
-	GIT_TAG e8b6a59cdc139fa836c85d9ecbd469aabf828c02
-)
-FetchContent_GetProperties(nanotime)
-if(NOT nanotime_POPULATED)
-	FetchContent_Populate(nanotime)
+
+if(DEFINED NANOTIME_SOURCE_DIRECTORY)
+  set(NANOTIME_SOURCE_DIRECTORY "${NANOTIME_SOURCE_DIRECTORY}")
+else()
+  FetchContent_Declare(
+    nanotime
+    GIT_REPOSITORY https://github.com/nightmareci/nanotime.git
+    GIT_TAG e8b6a59cdc139fa836c85d9ecbd469aabf828c02)
+  FetchContent_GetProperties(nanotime)
+  if(NOT nanotime_POPULATED)
+    FetchContent_Populate(nanotime)
+  endif()
+  FetchContent_GetProperties(nanotime SOURCE_DIR NANOTIME_SOURCE_DIRECTORY)
 endif()
-FetchContent_GetProperties(nanotime
-	SOURCE_DIR NANOTIME_SOURCE_DIRECTORY
-)
 target_sources(${GAME_EXECUTABLE}
-	PRIVATE
-		"${NANOTIME_SOURCE_DIRECTORY}/nanotime.h"
-)
-target_include_directories(${GAME_EXECUTABLE}
-	PRIVATE
-		"${NANOTIME_SOURCE_DIRECTORY}"
-)
+               PRIVATE "${NANOTIME_SOURCE_DIRECTORY}/nanotime.h")
+target_include_directories(${GAME_EXECUTABLE} SYSTEM
+                           PRIVATE "${NANOTIME_SOURCE_DIRECTORY}")
 #
 # The "Headers" source group for IDEs
 #
@@ -237,299 +150,168 @@ set(EXECUTABLE_THIRD_PARTY "${EXECUTABLE_SOURCES}")
 list(FILTER EXECUTABLE_THIRD_PARTY INCLUDE REGEX third-party)
 list(JOIN EXECUTABLE_THIRD_PARTY " " EXECUTABLE_THIRD_PARTY)
 source_group("Third-party" FILES "${EXECUTABLE_THIRD_PARTY}")
+
 #
 # Dependency management
 #
-set(MINIMUM_SDL2_VERSION 2.0.5)
-set(MINIMUM_SDL2_IMAGE_VERSION 2.0.5)
-set(MINIMUM_SDL2_MIXER_VERSION 2.0.3)
-set(MINIMUM_SQLITE3_VERSION 3.24.0)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SDL3 REQUIRED sdl3)
+pkg_check_modules(SDL3_IMAGE REQUIRED "sdl3-image")
+pkg_check_modules(SDL3_MIXER REQUIRED "sdl3-mixer")
+pkg_check_modules(SQLITE3 REQUIRED sqlite3)
 
-option(FETCH_DEPENDENCIES "Selects whether dependencies should be downloaded and built as part of the project build.")
-if(FETCH_DEPENDENCIES)
-	# We don't need to check package versions here, as the git tags are
-	# effectively version numbers already verified as working.
+target_include_directories(
+  ${GAME_EXECUTABLE} PRIVATE ${SDL3_INCLUDE_DIRS} ${SDL3_IMAGE_INCLUDE_DIRS}
+                             ${SDL3_MIXER_INCLUDE_DIRS} ${SQLITE3_INCLUDE_DIRS})
+target_link_libraries(
+  ${GAME_EXECUTABLE} PRIVATE ${SDL3_LIBRARIES} ${SDL3_IMAGE_LIBRARIES}
+                             ${SDL3_MIXER_LIBRARIES} ${SQLITE3_LIBRARIES})
 
-	set(BUILD_SHARED_LIBS FALSE)
+target_compile_options(
+  ${GAME_EXECUTABLE}
+  PRIVATE $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
+          -g
+          -O1
+          -Wall
+          -Wextra
+          -Wpedantic
+          -Werror
+          # -fsanitize=address,undefined
+          -fno-omit-frame-pointer
+          >)
 
-	set(SDL_TEST FALSE)
-	FetchContent_Declare(
-		SDL2
-		GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-		GIT_TAG 4761467b2e8cc7db3d6bc98747daca0051858f09
-		GIT_PROGRESS TRUE
-		OVERRIDE_FIND_PACKAGE
-	)
-
-	set(SDL2IMAGE_VENDORED TRUE)
-	set(SDL2IMAGE_SAMPLES FALSE)
-	set(SDL2IMAGE_INSTALL FALSE)
-	FetchContent_Declare(
-		SDL2_image
-		GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
-		GIT_TAG d3c6d5963dbe438bcae0e2b6f3d7cfea23d02829
-		GIT_PROGRESS TRUE
-	)
-
-	set(SDL2MIXER_VENDORED TRUE)
-	set(SDL2MIXER_SAMPLES FALSE)
-	set(SDL2MIXER_INSTALL FALSE)
-	FetchContent_Declare(
-		SDL2_mixer
-		GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
-		GIT_TAG 6103316427a8479e5027e41ab9948bebfc1c3c19
-		GIT_PROGRESS TRUE
-	)
-
-	FetchContent_Declare(
-		sqlite3-cmake
-		GIT_REPOSITORY https://github.com/undisputed-seraphim/sqlite3-cmake.git
-		GIT_TAG 4464c04eb025cd5ff27a2952658da691bc18683e
-		GIT_PROGRESS TRUE
-	)
-
-	FetchContent_MakeAvailable(
-		SDL2
-		SDL2_image
-		SDL2_mixer
-		sqlite3-cmake
-	)
-
-	FetchContent_GetProperties(
-		sqlite3-cmake
-		SOURCE_DIR SQLITE3_SOURCE_DIR
-	)
-	target_include_directories(${GAME_EXECUTABLE} PRIVATE "${SQLITE3_SOURCE_DIR}/src")
-
-	target_link_libraries(${GAME_EXECUTABLE}
-		PRIVATE
-			SDL2::SDL2
-			SDL2_image
-			SDL2_mixer
-			sqlite3
-	)
-	if(TARGET SDL2::SDL2main)
-		target_link_libraries(${GAME_EXECUTABLE}
-			PRIVATE
-				SDL2::SDL2main
-		)
-	endif()
-elseif(UNIX OR MINGW)
-	find_package(PkgConfig)
-	function(target_pkg_config_import TARGET DEPENDENCY)
-		string(TOUPPER ${DEPENDENCY} DEPENDENCY_VARIABLE)
-		set(MINIMUM_VERSION ${MINIMUM_${DEPENDENCY_VARIABLE}_VERSION})
-		pkg_check_modules(${DEPENDENCY_VARIABLE} REQUIRED ${DEPENDENCY}>=${MINIMUM_VERSION})
-		target_compile_options(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_CFLAGS}")
-		target_compile_options(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_CFLAGS_OTHER}")
-		target_include_directories(${TARGET} SYSTEM PRIVATE "${${DEPENDENCY_VARIABLE}_INCLUDE_DIRS}")
-		target_link_directories(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_LIBRARY_DIRS}")
-		target_link_libraries(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_LIBRARIES}")
-		target_link_options(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_LDFLAGS}")
-		target_link_options(${TARGET} PRIVATE "${${DEPENDENCY_VARIABLE}_LDFLAGS_OTHER}")
-	endfunction()
-	if(PKG_CONFIG_FOUND)
-		#
-		# Link anything that `pkg-config` can't resolve on its own.
-		#
-		target_link_libraries(${GAME_EXECUTABLE} PRIVATE
-			m
-			${CMAKE_DL_LIBS}
-		)
-		#
-		# Let `pkg-config` do its magic.
-		#
-		set(DEPENDENCIES
-			sdl2
-			SDL2_image
-			SDL2_mixer
-			sqlite3
-		)
-		foreach(DEPENDENCY ${DEPENDENCIES})
-			target_pkg_config_import(${GAME_EXECUTABLE} ${DEPENDENCY})
-		endforeach()
-	else()
-		message(FATAL_ERROR "On Unix platforms, pkg-config is required for getting dependencies.")
-	endif()
-else()
-	find_package(SDL2 REQUIRED)
-	if(SDL2_VERSION VERSION_LESS 2.0.5)
-		message(FATAL_ERROR "SDL2 version ${SDL2_VERSION} found but at least ${MINIMUM_SDL2_VERSION} is required.")
-	endif()
-
-	find_package(SDL2_image REQUIRED)
-	if(SDL2_image_VERSION VERSION_LESS ${MINIMUM_SDL2_IMAGE_VERSION})
-		message(FATAL_ERROR "SDL2_image version ${SDL2_image_VERSION} found but at least ${MINIMUM_SDL2_IMAGE_VERSION} is required.")
-	endif()
-
-	find_package(SDL2_mixer REQUIRED)
-	if(SDL2_mixer_VERSION VERSION_LESS ${MINIMUM_SDL2_MIXER_VERSION})
-		message(FATAL_ERROR "SDL2_mixer version ${SDL2_mixer_VERSION} found but at least ${MINIMUM_SDL2_MIXER_VERSION} is required.")
-	endif()
-
-	find_package(SQLite3 REQUIRED)
-	if(SQLite3_VERSION VERSION_LESS ${MINIMUM_SQLITE3_VERSION})
-		message(FATAL_ERROR "SQLite3 version ${SQLite3_VERSION} found but at least ${MINIMUM_SQLITE3_VERSION} is required.")
-	endif()
-
-	target_link_libraries(${GAME_EXECUTABLE}
-		PUBLIC
-			SDL2::SDL2
-			SDL2_image::SDL2_image
-			SDL2_mixer::SDL2_mixer
-			SQLite::SQLite3
-	)
-	if(TARGET SDL2::SDL2main)
-		target_link_libraries(${GAME_EXECUTABLE}
-			PRIVATE
-				SDL2::SDL2main
-		)
-	endif()
-endif()
-#
-# On distributions with prehistoric packages, clang/gcc are unable to link these libraries themselves.
-# NOTE: We should remove this section as soon as debian-stable adds `{clang,g++}-9`.
-#
-# See https://en.cppreference.com/w/cpp/filesystem
-#
-if(
-	CMAKE_CXX_COMPILER_ID STREQUAL GNU AND
-	CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 5.0 AND
-	CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.1
-)
-	set(FILE_SYSTEM_LIBRARY_NAME stdc++fs)
-elseif(
-	CMAKE_CXX_COMPILER_ID STREQUAL Clang AND
-	CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 5.0 AND
-	CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0
-)
-	set(FILE_SYSTEM_LIBRARY_NAME c++fs)
-endif()
-if(DEFINED FILE_SYSTEM_LIBRARY_NAME)
-	find_library(FILE_SYSTEM ${FILE_SYSTEM_LIBRARY_NAME}
-		PATHS
-			/usr/lib/llvm-5/lib
-			/usr/lib/llvm-6/lib
-			/usr/lib/llvm-7/lib
-			/usr/lib/llvm-8/lib
-			/usr/lib/gcc/x86_64-linux-gnu/5
-			/usr/lib/gcc/x86_64-linux-gnu/6
-			/usr/lib/gcc/x86_64-linux-gnu/7
-			/usr/lib/gcc/x86_64-linux-gnu/8
-			/usr/lib/gcc/x86_64-linux-gnu/9
-		REQUIRED
-	)
-	target_link_libraries(${GAME_EXECUTABLE} PRIVATE ${FILE_SYSTEM})
-endif()
-#
-# On clang and gcc, add a few sanitizers in the `Debug` configuration.
-# Support for this is currently only partially available on MSYS2, so we disable it for WIN32.
-#
-if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-	if(CMAKE_BUILD_TYPE STREQUAL Debug AND NOT MINGW)
-		target_link_libraries(${GAME_EXECUTABLE}
-			PRIVATE
-				-fsanitize=address,leak,undefined
-				-fsanitize-address-use-after-scope
-				-fsanitize-undefined-trap-on-error
-		)
-	endif()
-endif()
 #
 # Enable parallel compiling when using MSVC.
 #
 if(MSVC)
-	target_compile_options(${GAME_EXECUTABLE} PRIVATE "/MP")
+  target_compile_options(${GAME_EXECUTABLE} PRIVATE "/MP")
 endif()
 #
 # Installation
 #
 if(PORTABLE)
-	#
-	# If the CPACK_COMPONENTS_ALL variable is left as its default value, then
-	# other junk gets installed into CPack-generated packages when using
-	# FETCH_DEPENDENCIES. So we specify the stuff we want installed as
-	# belonging to a component ("Game") and also specify to only package the
-	# component we want ("Game"). The "Game" component is also used when
-	# building for AppImage, though CPack isn't used when targeting AppImage;
-	# the external build script just specifies to only build the "Game"
-	# component instead.
-	#
-	if(APPLE)
-		set(CPACK_COMPONENTS_ALL Game)
-		install(DIRECTORY data DESTINATION ${GAME_EXECUTABLE} COMPONENT Game)
-		install(FILES LICENSE.md DESTINATION ${GAME_EXECUTABLE} COMPONENT Game)
-		install(FILES shiromino.ini DESTINATION ${GAME_EXECUTABLE} COMPONENT Game)
-		install(TARGETS ${GAME_EXECUTABLE} BUNDLE DESTINATION ${GAME_EXECUTABLE} COMPONENT Game)
+  #
+  # If the CPACK_COMPONENTS_ALL variable is left as its default value, then
+  # other junk gets installed into CPack-generated packages when using
+  # FETCH_DEPENDENCIES. So we specify the stuff we want installed as belonging
+  # to a component ("Game") and also specify to only package the component we
+  # want ("Game"). The "Game" component is also used when building for AppImage,
+  # though CPack isn't used when targeting AppImage; the external build script
+  # just specifies to only build the "Game" component instead.
+  #
+  if(APPLE)
+    set(CPACK_COMPONENTS_ALL Game)
+    install(
+      DIRECTORY data
+      DESTINATION ${GAME_EXECUTABLE}
+      COMPONENT Game)
+    install(
+      FILES LICENSE.md
+      DESTINATION ${GAME_EXECUTABLE}
+      COMPONENT Game)
+    install(
+      FILES shiromino.ini
+      DESTINATION ${GAME_EXECUTABLE}
+      COMPONENT Game)
+    install(TARGETS ${GAME_EXECUTABLE} BUNDLE DESTINATION ${GAME_EXECUTABLE}
+                                              COMPONENT Game)
 
-		set(MACOSX_BUNDLE_BUNDLE_NAME ${GAME_EXECUTABLE})
-		set(MACOSX_BUNDLE_GUI_IDENTIFIER io.github.shiromino.shiromino)
-		set(MACOSX_BUNDLE_ICON_FILE icon)
-		set(MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}")
-		set(MACOSX_BUNDLE_COPYRIGHT "Copyright © 2015–2022 The shiromino team")
-		set(SDL_FILESYSTEM_BASE_DIR_TYPE parent)
-		set_target_properties(${GAME_EXECUTABLE} PROPERTIES
-			BUNDLE True
-			MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in"
-		)
+    set(MACOSX_BUNDLE_BUNDLE_NAME ${GAME_EXECUTABLE})
+    set(MACOSX_BUNDLE_GUI_IDENTIFIER io.github.shiromino.shiromino)
+    set(MACOSX_BUNDLE_ICON_FILE icon)
+    set(MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}")
+    set(MACOSX_BUNDLE_COPYRIGHT "Copyright © 2015–2022 The shiromino team")
+    set(SDL_FILESYSTEM_BASE_DIR_TYPE parent)
+    set_target_properties(
+      ${GAME_EXECUTABLE}
+      PROPERTIES BUNDLE True
+                 MACOSX_BUNDLE_INFO_PLIST
+                 "${CMAKE_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in")
 
-		set(CPACK_APPLE_CERT_NAME - CACHE STRING "The name of the Apple supplied code signing certificate to use. Defaults to adhoc signing (\"-\")")
+    set(CPACK_APPLE_CERT_NAME
+        -
+        CACHE
+          STRING
+          "The name of the Apple supplied code signing certificate to use. Defaults to adhoc signing (\"-\")"
+    )
 
-		if(CPACK_APPLE_CERT_NAME STREQUAL -)
-			set(CPACK_ENTITLEMENTS_FILE "${CMAKE_SOURCE_DIR}/cmake/macos-entitlements-adhoc.xml")
-		else()
-			set(CPACK_ENTITLEMENTS_FILE "${CMAKE_SOURCE_DIR}/cmake/macos-entitlements-identity-required.xml")
-		endif()
+    if(CPACK_APPLE_CERT_NAME STREQUAL -)
+      set(CPACK_ENTITLEMENTS_FILE
+          "${CMAKE_SOURCE_DIR}/cmake/macos-entitlements-adhoc.xml")
+    else()
+      set(CPACK_ENTITLEMENTS_FILE
+          "${CMAKE_SOURCE_DIR}/cmake/macos-entitlements-identity-required.xml")
+    endif()
 
-		set(CPACK_DMG_VOLUME_NAME ${GAME_EXECUTABLE})
-		set(CPACK_PACKAGE_VENDOR "The shiromino team")
+    set(CPACK_DMG_VOLUME_NAME ${GAME_EXECUTABLE})
+    set(CPACK_PACKAGE_VENDOR "The shiromino team")
 
-		set(CPACK_PACKAGE_FILE_NAME "${GAME_EXECUTABLE}-macos")
-		foreach(ARCH ${CMAKE_OSX_ARCHITECTURES})
-			string(APPEND CPACK_PACKAGE_FILE_NAME "-${ARCH}")
-		endforeach()
-		string(APPEND CPACK_PACKAGE_FILE_NAME "-${PROJECT_VERSION}")
+    set(CPACK_PACKAGE_FILE_NAME "${GAME_EXECUTABLE}-macos")
+    foreach(ARCH ${CMAKE_OSX_ARCHITECTURES})
+      string(APPEND CPACK_PACKAGE_FILE_NAME "-${ARCH}")
+    endforeach()
+    string(APPEND CPACK_PACKAGE_FILE_NAME "-${PROJECT_VERSION}")
 
-		set(CPACK_GENERATOR DragNDrop)
-		set(CPACK_POST_BUILD_SCRIPTS "${CMAKE_SOURCE_DIR}/cmake/CPackPostBuildMacOS.cmake")
-		include("${CMAKE_SOURCE_DIR}/cmake/InstallRuntimeDependenciesMacOS.cmake" REQUIRED)
-		include(CPack)
-	elseif(WIN32 AND MSVC)
-		set(CPACK_ARCHIVE_COMPONENT_INSTALL TRUE)
-		set(CPACK_COMPONENTS_ALL Game)
-		# The CPack archive generator can be instructed to generate specific
-		# filenames for the archives of individual components as done here, but
-		# the component name part of the variable must be an all uppercase
-		# version of the component's name.
-		if (CMAKE_VS_PLATFORM_NAME STREQUAL Win32)
-			set(CPACK_ARCHIVE_GAME_FILE_NAME "${GAME_EXECUTABLE}-windows-x86-${PROJECT_VERSION}")
-		else()
-			set(CPACK_ARCHIVE_GAME_FILE_NAME "${GAME_EXECUTABLE}-windows-${CMAKE_VS_PLATFORM_NAME}-${PROJECT_VERSION}")
-		endif()
+    set(CPACK_GENERATOR DragNDrop)
+    set(CPACK_POST_BUILD_SCRIPTS
+        "${CMAKE_SOURCE_DIR}/cmake/CPackPostBuildMacOS.cmake")
+    include("${CMAKE_SOURCE_DIR}/cmake/InstallRuntimeDependenciesMacOS.cmake"
+            REQUIRED)
+    include(CPack)
+  elseif(WIN32 AND MSVC)
+    set(CPACK_ARCHIVE_COMPONENT_INSTALL TRUE)
+    set(CPACK_COMPONENTS_ALL Game)
+    # The CPack archive generator can be instructed to generate specific
+    # filenames for the archives of individual components as done here, but the
+    # component name part of the variable must be an all uppercase version of
+    # the component's name.
+    if(CMAKE_VS_PLATFORM_NAME STREQUAL Win32)
+      set(CPACK_ARCHIVE_GAME_FILE_NAME
+          "${GAME_EXECUTABLE}-windows-x86-${PROJECT_VERSION}")
+    else()
+      set(CPACK_ARCHIVE_GAME_FILE_NAME
+          "${GAME_EXECUTABLE}-windows-${CMAKE_VS_PLATFORM_NAME}-${PROJECT_VERSION}"
+      )
+    endif()
 
-		install(DIRECTORY data DESTINATION "${CPACK_ARCHIVE_GAME_FILE_NAME}" COMPONENT Game)
-		install(FILES LICENSE.md DESTINATION "${CPACK_ARCHIVE_GAME_FILE_NAME}" COMPONENT Game)
-		install(FILES shiromino.ini DESTINATION "${CPACK_ARCHIVE_GAME_FILE_NAME}" COMPONENT Game)
-		install(TARGETS ${GAME_EXECUTABLE} RUNTIME DESTINATION "${CPACK_ARCHIVE_GAME_FILE_NAME}" COMPONENT Game)
+    install(
+      DIRECTORY data
+      DESTINATION "${CPACK_ARCHIVE_GAME_FILE_NAME}"
+      COMPONENT Game)
+    install(
+      FILES LICENSE.md
+      DESTINATION "${CPACK_ARCHIVE_GAME_FILE_NAME}"
+      COMPONENT Game)
+    install(
+      FILES shiromino.ini
+      DESTINATION "${CPACK_ARCHIVE_GAME_FILE_NAME}"
+      COMPONENT Game)
+    install(TARGETS ${GAME_EXECUTABLE}
+            RUNTIME DESTINATION "${CPACK_ARCHIVE_GAME_FILE_NAME}"
+                    COMPONENT Game)
 
-		set(CPACK_GENERATOR ZIP)
-		if(NOT FETCH_DEPENDENCIES)
-			include("${CMAKE_SOURCE_DIR}/cmake/InstallRuntimeDependenciesMSVC.cmake" REQUIRED)
-		endif()
-		include(CPack)
-	elseif(APPIMAGE_BASE_PATH)
-		include(GNUInstallDirs)
-		install(TARGETS ${GAME_EXECUTABLE} RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Game)
-	else()
-		install(DIRECTORY data DESTINATION ${GAME_EXECUTABLE})
-		install(FILES LICENSE.md DESTINATION ${GAME_EXECUTABLE})
-		install(FILES shiromino.ini DESTINATION ${GAME_EXECUTABLE})
-		install(TARGETS ${GAME_EXECUTABLE} BUNDLE DESTINATION ${GAME_EXECUTABLE})
-	endif()
+    set(CPACK_GENERATOR ZIP)
+    if(NOT FETCH_DEPENDENCIES)
+      include("${CMAKE_SOURCE_DIR}/cmake/InstallRuntimeDependenciesMSVC.cmake"
+              REQUIRED)
+    endif()
+    include(CPack)
+  elseif(APPIMAGE_BASE_PATH)
+    include(GNUInstallDirs)
+    install(TARGETS ${GAME_EXECUTABLE}
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Game)
+  else()
+    install(DIRECTORY data DESTINATION ${GAME_EXECUTABLE})
+    install(FILES LICENSE.md DESTINATION ${GAME_EXECUTABLE})
+    install(FILES shiromino.ini DESTINATION ${GAME_EXECUTABLE})
+    install(TARGETS ${GAME_EXECUTABLE} BUNDLE DESTINATION ${GAME_EXECUTABLE})
+  endif()
 elseif(UNIX OR MINGW)
-	include(GNUInstallDirs)
-	install(DIRECTORY data DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}")
-	install(FILES LICENSE.md DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}")
-	install(FILES shiromino.ini TYPE SYSCONF)
-	install(TARGETS ${GAME_EXECUTABLE} RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+  include(GNUInstallDirs)
+  install(DIRECTORY data DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}")
+  install(FILES LICENSE.md
+          DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}")
+  install(FILES shiromino.ini TYPE SYSCONF)
+  install(TARGETS ${GAME_EXECUTABLE}
+          RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endif()

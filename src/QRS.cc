@@ -1,49 +1,39 @@
 #include "CoreState.h"
+#include "GameType.h"
+#include "Grid.h"
+#include "PieceDefinition.h"
+#include "QRS0.h"
+#include "RotationTables.h"
+#include "SDL3/SDL.h"
+#include "Timer.h"
 #include "asset/Sfx.h"
 #include "game_menu.h" // questionable dependency - TODO look into these
 #include "game_qs.h"   // questionable dependency
-#include "GameType.h"
-#include "video/MessageEntity.h"
 #include "gfx_old.h"   // questionable dependency
 #include "gfx_qs.h"    // very questionable dependency
 #include "gfx_structures.h"
-#include "Grid.h"
 #include "input/KeyFlags.h"
-#include "PieceDefinition.h"
-#include "QRS0.h"
 #include "random.h"
 #include "replay.h"
-#include "Timer.h"
-#include "RotationTables.h"
-#include "SDL.h"
+#include "video/MessageEntity.h"
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
+#include <memory>
 #include <string>
 #include <utility>
-#include <memory>
-const char *qrspiece_names[25] = {"I5", "J5", "L5",  "X",  "S5", "Z5",       "N",  "G",  "U",  "T5", "Fa", "Fb", "P",
-                                  "Q", "W", "Ya", "Yb", "V", /**/ "I", "T", "J", "L", "O", "S", "Z"};
+
+const char *qrspiece_names[25] = {"I5", "J5", "L5", "X",  "S5", "Z5",     "N", "G", "U", "T5", "Fa", "Fb", "P",
+                                  "Q",  "W",  "Ya", "Yb", "V",  /**/ "I", "T", "J", "L", "O",  "S",  "Z"};
 
 QRS_Timings::QRS_Timings() : QRS_Timings(0u, 4, 30, 14, 30, 30, 40) {}
 
-QRS_Timings::QRS_Timings(unsigned level, int grav, int lock, int das, int are, int lineare, int lineclear) :
-    level(level),
-    grav(grav),
-    lock(lock),
-    das(das),
-    are(are),
-    lineare(lineare),
-    lineclear(lineclear) {}
+QRS_Timings::QRS_Timings(unsigned level, int grav, int lock, int das, int are, int lineare, int lineclear)
+    : level(level), grav(grav), lock(lock), das(das), are(are), lineare(lineare), lineclear(lineclear)
+{
+}
 
-QRS_Counters::QRS_Counters() :
-    init(0),
-    lock(0),
-    are(0),
-    lineare(0),
-    lineclear(0),
-    floorkicks(0u),
-    hold_flash(0) {}
+QRS_Counters::QRS_Counters() : init(0), lock(0), are(0), lineare(0), lineclear(0), floorkicks(0u), hold_flash(0) {}
 
 const std::string get_qrspiece_name(size_t n)
 {
@@ -113,7 +103,8 @@ void pracdata_destroy(pracdata *d)
     if(!d)
         return;
 
-    if (d->usr_timings) {
+    if(d->usr_timings)
+    {
         delete d->usr_timings;
     }
 }
@@ -196,46 +187,37 @@ std::vector<Shiro::PieceDefinition> qrspool_create()
 
         for(std::size_t j = 0u; j < 4u; j++)
         {
-            if (n == 5) {
+            if(n == 5)
+            {
                 pool[i].rotationTable[j] = Shiro::PentoRotationTables[i][j];
             }
-            else if (n == 4) {
+            else if(n == 4)
+            {
                 pool[i].rotationTable[j] = Shiro::TetroRotationTables[i - 18][j];
             }
         }
 
-        if(!(i == QRS_I || i == QRS_N || i == QRS_G || i == QRS_J || i == QRS_L ||
-             i == QRS_T || i == QRS_Ya || i == QRS_Yb || i == QRS_I4 || i == QRS_T4))
+        if(!(i == QRS_I || i == QRS_N || i == QRS_G || i == QRS_J || i == QRS_L || i == QRS_T || i == QRS_Ya || i == QRS_Yb || i == QRS_I4 || i == QRS_T4))
         {
             pool[i].flags = static_cast<Shiro::PieceDefinitionFlag>(pool[i].flags ^ Shiro::PDNOFKICK);
         }
 
         if((i == QRS_Ya) || (i == QRS_Yb) || (i == QRS_L) || (i == QRS_J) || (i == QRS_N) || (i == QRS_G))
         {
-            pool[i].flags = static_cast<Shiro::PieceDefinitionFlag>(
-                pool[i].flags | Shiro::PDONECELLFLOORKICKS);
+            pool[i].flags = static_cast<Shiro::PieceDefinitionFlag>(pool[i].flags | Shiro::PDONECELLFLOORKICKS);
         }
 
         if(i == QRS_T)
         {
-            pool[i].flags = static_cast<Shiro::PieceDefinitionFlag>(
-                pool[i].flags |
-                Shiro::PDFLATFLOORKICKS |
-                Shiro::PDONECELLFLOORKICKS |
-                //Shiro::PDPREFERWKICK |
-                Shiro::PDAIRBORNEFKICKS
-            );
+            pool[i].flags = static_cast<Shiro::PieceDefinitionFlag>(pool[i].flags | Shiro::PDFLATFLOORKICKS | Shiro::PDONECELLFLOORKICKS |
+                                                                    // Shiro::PDPREFERWKICK |
+                                                                    Shiro::PDAIRBORNEFKICKS);
         }
 
         if(i == QRS_T4)
         {
-            pool[i].flags = static_cast<Shiro::PieceDefinitionFlag>(
-                pool[i].flags |
-                Shiro::PDFLIPFLOORKICKS |
-                Shiro::PDONECELLFLOORKICKS |
-                Shiro::PDPREFERWKICK |
-                Shiro::PDAIRBORNEFKICKS
-            );
+            pool[i].flags = static_cast<Shiro::PieceDefinitionFlag>(pool[i].flags | Shiro::PDFLIPFLOORKICKS | Shiro::PDONECELLFLOORKICKS |
+                                                                    Shiro::PDPREFERWKICK | Shiro::PDAIRBORNEFKICKS);
         }
 
         if(i >= 18u)
@@ -247,10 +229,7 @@ std::vector<Shiro::PieceDefinition> qrspool_create()
     return pool;
 }
 
-Shiro::Grid *qrsfield_create()
-{
-    return new Shiro::Grid(QRS_FIELD_W, QRS_FIELD_H);
-}
+Shiro::Grid *qrsfield_create() { return new Shiro::Grid(QRS_FIELD_W, QRS_FIELD_H); }
 
 int qrsfield_set_w(Shiro::Grid *field, int w)
 {
@@ -261,7 +240,8 @@ int qrsfield_set_w(Shiro::Grid *field, int w)
     {
         for(std::size_t j = 0; j < field->getHeight(); j++)
         {
-            if (field->getCell(i, j) == QRS_FIELD_W_LIMITER) {
+            if(field->getCell(i, j) == QRS_FIELD_W_LIMITER)
+            {
                 field->setCell(i, j, 0);
             }
         }
@@ -279,7 +259,7 @@ int qrsfield_set_w(Shiro::Grid *field, int w)
     return 0;
 }
 
-int qrsfield_clear(Shiro::Grid *field) { return 0; }
+int qrsfield_clear(Shiro::Grid *) { return 0; }
 
 int undo_clear_button_should_activate(CoreState *cs)
 {
@@ -344,10 +324,7 @@ int usr_field_undo_history_exists(CoreState *cs)
     return 0;
 }
 
-int usr_field_undo_history_not_exists(CoreState *cs)
-{
-    return usr_field_undo_history_exists(cs) == 0;
-}
+int usr_field_undo_history_not_exists(CoreState *cs) { return usr_field_undo_history_exists(cs) == 0; }
 
 int usr_field_redo_history_exists(CoreState *cs)
 {
@@ -369,12 +346,9 @@ int usr_field_redo_history_exists(CoreState *cs)
     return 0;
 }
 
-int usr_field_redo_history_not_exists(CoreState *cs)
-{
-    return usr_field_redo_history_exists(cs) == 0;
-}
+int usr_field_redo_history_not_exists(CoreState *cs) { return usr_field_redo_history_exists(cs) == 0; }
 
-int lock_usr_field(CoreState *cs, void *data)
+int lock_usr_field(CoreState *cs, void *)
 {
     if(!cs || !cs->p1game)
         return -1;
@@ -389,7 +363,7 @@ int lock_usr_field(CoreState *cs, void *data)
     return 0;
 }
 
-int unlock_usr_field(CoreState *cs, void *data)
+int unlock_usr_field(CoreState *cs, void *)
 {
     if(!cs || !cs->p1game)
         return -1;
@@ -440,14 +414,18 @@ int usr_field_is_unlocked(CoreState *cs)
     return 0;
 }
 
-int usr_field_bkp(CoreState *cs, pracdata *d) {
-    if (!d) {
+int usr_field_bkp(CoreState *, pracdata *d)
+{
+    if(!d)
+    {
         return 1;
     }
 
-    if (!d->usr_field_undo.size()) {
+    if(!d->usr_field_undo.size())
+    {
         /*gfx_createbutton(
-            cs, "CLEAR UNDO", QRS_FIELD_X + (16 * 16) - 6, QRS_FIELD_Y + 23 * 16 + 8 - 6, 0, push_undo_clear_confirm, undo_clear_button_should_activate, NULL, 0xC0C0FFFF);*/
+            cs, "CLEAR UNDO", QRS_FIELD_X + (16 * 16) - 6, QRS_FIELD_Y + 23 * 16 + 8 - 6, 0, push_undo_clear_confirm, undo_clear_button_should_activate, NULL,
+           0xC0C0FFFF);*/
     }
     d->usr_field_undo.push_back(d->usr_field);
 
@@ -456,13 +434,15 @@ int usr_field_bkp(CoreState *cs, pracdata *d) {
     return 0;
 }
 
-int usr_field_undo(CoreState *cs, pracdata *d)
+int usr_field_undo(CoreState *, pracdata *d)
 {
-    if (!d) {
+    if(!d)
+    {
         return 1;
     }
 
-    if (!d->usr_field_undo.size()) {
+    if(!d->usr_field_undo.size())
+    {
         return 0;
     }
 
@@ -474,14 +454,15 @@ int usr_field_undo(CoreState *cs, pracdata *d)
     return 0;
 }
 
-int usr_field_redo(CoreState *cs, pracdata *d)
+int usr_field_redo(CoreState *, pracdata *d)
 {
     if(!d)
     {
         return 1;
     }
 
-    if (!d->usr_field_redo.size()) {
+    if(!d->usr_field_redo.size())
+    {
         return 0;
     }
 
@@ -493,7 +474,7 @@ int usr_field_redo(CoreState *cs, pracdata *d)
     return 0;
 }
 
-int push_undo_clear_confirm(CoreState *cs, void *data)
+int push_undo_clear_confirm(CoreState *cs, void*)
 {
     cs->button_emergency_override = true;
 
@@ -514,9 +495,23 @@ int push_undo_clear_confirm(CoreState *cs, void *data)
     );*/
 
     gfx_createbutton(
-        cs, "YES", 640 / 2 - 6 * 16 - 6, 480 / 2 + 3 * 16 - 6, BUTTON_EMERGENCY, undo_clear_confirm_yes, [](CoreState* cs) { return (int)cs->button_emergency_inactive(); }, NULL, 0xB0FFB0FF);
+        cs,
+        "YES",
+        640 / 2 - 6 * 16 - 6,
+        480 / 2 + 3 * 16 - 6,
+        BUTTON_EMERGENCY,
+        [](CoreState *cs) { return (int)cs->button_emergency_inactive(); },
+        NULL,
+        0xB0FFB0FF);
     gfx_createbutton(
-        cs, "NO", 640 / 2 + 4 * 16 - 6, 480 / 2 + 3 * 16 - 6, BUTTON_EMERGENCY, undo_clear_confirm_no, [](CoreState* cs) { return (int)cs->button_emergency_inactive(); }, NULL, 0xFFA0A0FF);
+        cs,
+        "NO",
+        640 / 2 + 4 * 16 - 6,
+        480 / 2 + 3 * 16 - 6,
+        BUTTON_EMERGENCY,
+        [](CoreState *cs) { return (int)cs->button_emergency_inactive(); },
+        NULL,
+        0xFFA0A0FF);
 
     return 0;
 }
@@ -533,14 +528,14 @@ int undo_clear_confirm_yes(CoreState *cs, void *data)
     return 0;
 }
 
-int undo_clear_confirm_no(CoreState *cs, void *data)
+int undo_clear_confirm_no(CoreState *cs, void*)
 {
     cs->button_emergency_override = false;
     cs->mouse.leftButton = Shiro::Mouse::Button::notPressed;
     return 0;
 }
 
-int usr_field_undo_clear(CoreState *cs, void *data)
+int usr_field_undo_clear(CoreState *cs, void*)
 {
     qrsdata *q = (qrsdata *)cs->p1game->data;
 
@@ -550,14 +545,14 @@ int usr_field_undo_clear(CoreState *cs, void *data)
     return 0;
 }
 
-int usr_field_undo_button_action(CoreState *cs, void *data)
+int usr_field_undo_button_action(CoreState *cs, void*)
 {
     qrsdata *q = (qrsdata *)cs->p1game->data;
 
     return usr_field_undo(cs, q->pracdata);
 }
 
-int usr_field_redo_button_action(CoreState *cs, void *data)
+int usr_field_redo_button_action(CoreState *cs, void*)
 {
     qrsdata *q = (qrsdata *)cs->p1game->data;
 
@@ -591,10 +586,6 @@ int qrs_input(game_t *g)
 
     int edit_action_occurred = 0;
 
-    int scale = 1;
-
-    scale = static_cast<int>(cs->settings.videoScale);
-
     init = q->p1counters->init;
 
     if(d)
@@ -603,7 +594,7 @@ int qrs_input(game_t *g)
         {
             if(cs->undo && !d->field_edit_in_progress)
             {
-                if(SDL_GetModState() & KMOD_SHIFT)
+                if(SDL_GetModState() & SDL_KMOD_SHIFT)
                 {
                     while(d->usr_field_undo.size() > 0)
                     {
@@ -618,7 +609,7 @@ int qrs_input(game_t *g)
 
             if(cs->redo && !d->field_edit_in_progress)
             {
-                if(SDL_GetModState() & KMOD_SHIFT)
+                if(SDL_GetModState() & SDL_KMOD_SHIFT)
                 {
                     while(d->usr_field_redo.size() > 0)
                     {
@@ -658,7 +649,7 @@ int qrs_input(game_t *g)
                     d->field_selection_vertex2_y = 19;
                 }
 
-                if(SDL_GetModState() & KMOD_SHIFT && cs->mouse.leftButton != Shiro::Mouse::Button::notPressed)
+                if(SDL_GetModState() & SDL_KMOD_SHIFT && cs->mouse.leftButton != Shiro::Mouse::Button::notPressed)
                 {
                     if(cs->mouse.leftButton == Shiro::Mouse::Button::pressedThisFrame)
                     {
@@ -737,7 +728,7 @@ int qrs_input(game_t *g)
                             if(cs->mouse.leftButton == Shiro::Mouse::Button::pressedThisFrame)
                             {
                                 d->field_selection = 0;
-                                //cs->mouse.leftButton = Shiro::Mouse::Button::notPressed;
+                                // cs->mouse.leftButton = Shiro::Mouse::Button::notPressed;
                             }
                         }
                         else if(cs->mouse.leftButton != Shiro::Mouse::Button::notPressed && cell_x >= 0 && cell_x < 12 && cell_y >= 0 && cell_y < 20)
@@ -923,7 +914,7 @@ int qrs_input(game_t *g)
                             {
                                 if(d->usr_field.getCell(i, static_cast<std::size_t>(j) + 4) != QRS_FIELD_W_LIMITER && c != QRS_PIECE_GEM)
                                 {
-                                    if(SDL_GetModState() & KMOD_SHIFT)
+                                    if(SDL_GetModState() & SDL_KMOD_SHIFT)
                                     {
                                         if(IS_STACK(d->usr_field.getCell(i, static_cast<std::size_t>(j) + 4)))
                                         {
@@ -945,7 +936,7 @@ int qrs_input(game_t *g)
                                 }
                                 else if(d->usr_field.getCell(i, static_cast<std::size_t>(j) + 4) > 0 && c == QRS_PIECE_GEM)
                                 {
-                                    if(SDL_GetModState() & KMOD_SHIFT)
+                                    if(SDL_GetModState() & SDL_KMOD_SHIFT)
                                     {
                                         if(IS_STACK(d->usr_field.getCell(i, static_cast<std::size_t>(j) + 4)))
                                         {
@@ -977,7 +968,7 @@ int qrs_input(game_t *g)
                     {
                         if(d->usr_field.getCell(cell_x, static_cast<std::size_t>(cell_y) + 4) != QRS_FIELD_W_LIMITER && c != QRS_PIECE_GEM)
                         {
-                            if(SDL_GetModState() & KMOD_SHIFT)
+                            if(SDL_GetModState() & SDL_KMOD_SHIFT)
                             {
                                 if(IS_STACK(d->usr_field.getCell(cell_x, static_cast<std::size_t>(cell_y) + 4)))
                                 {
@@ -999,7 +990,7 @@ int qrs_input(game_t *g)
                         }
                         else if(d->usr_field.getCell(cell_x, static_cast<std::size_t>(cell_y) + 4) > 0 && c == QRS_PIECE_GEM)
                         {
-                            if(SDL_GetModState() & KMOD_SHIFT)
+                            if(SDL_GetModState() & SDL_KMOD_SHIFT)
                             {
                                 if(IS_STACK(d->usr_field.getCell(cell_x, static_cast<std::size_t>(cell_y) + 4)))
                                 {
@@ -1076,7 +1067,8 @@ int qrs_input(game_t *g)
         }
         else
         {
-            if((!(q->state_flags & (GAMESTATE_CREDITS | GAMESTATE_FADE_TO_CREDITS)) && (!q->topped_out)) || q->topped_out || q->playback || (q->state_flags & GAMESTATE_GAMEOVER))
+            if((!(q->state_flags & (GAMESTATE_CREDITS | GAMESTATE_FADE_TO_CREDITS)) && (!q->topped_out)) || q->topped_out || q->playback ||
+               (q->state_flags & GAMESTATE_GAMEOVER))
             {
                 Mix_HaltMusic();
                 return 1;
@@ -1199,7 +1191,7 @@ int qrs_start_record(game_t *g)
     return 0;
 }
 
-int qrs_end_record(game_t* g)
+int qrs_end_record(game_t *g)
 {
     qrsdata *q = (qrsdata *)g->data;
 
@@ -1386,7 +1378,7 @@ int qrs_wallkick(game_t *g, qrs_player *p)
     std::pair<int, int> pos;
     qrs_chkcollision(*g, *p, pos);
     int x = pos.first;
-//     std::cerr << "Trying to kick with collision at x = " << x << std::endl;
+    //     std::cerr << "Trying to kick with collision at x = " << x << std::endl;
 
     if(p->def->flags & Shiro::PDNOWKICK)
         return 1;
@@ -1477,8 +1469,8 @@ int qrs_wallkick(game_t *g, qrs_player *p)
 
 int qrs_hold(game_t *g, qrs_player *p)
 {
-    qrsdata* q = (qrsdata *)g->data;
-    Shiro::PieceDefinition* temp = NULL;
+    qrsdata *q = (qrsdata *)g->data;
+    Shiro::PieceDefinition *temp = NULL;
 
     if(!q->hold_enabled)
         return 1;
@@ -1626,14 +1618,13 @@ int qrs_floorkick(game_t *g, qrs_player *p)
     }
 
     q->p1counters->floorkicks++;
-//     std::cerr << "Number of floorkicks so far: " << q->p1counters->floorkicks << std::endl;
+    //     std::cerr << "Number of floorkicks so far: " << q->p1counters->floorkicks << std::endl;
 
     return 0;
 }
 
 int qrs_ceilingkick(game_t *g, qrs_player *p)
 {
-    qrsdata *q = (qrsdata *)g->data;
     int bkp_y = p->y;
 
     if(p->def->flags & Shiro::PDNOCEILKICKS)
@@ -1697,14 +1688,19 @@ int qrs_lock(game_t *g, qrs_player *p)
     constexpr std::size_t ay = ANCHORY_QRS;
     piece_id c = p->def->qrsID;
 
-    for (std::size_t from_y = 0, to_y = static_cast<std::size_t>(YTOROW(p->y)) - ay; from_y < d->getHeight(); from_y++, to_y++) {
-        for (std::size_t from_x = 0, to_x = static_cast<std::size_t>(p->x) - ax; from_x < d->getWidth(); from_x++, to_x++) {
-            if (d->getCell(from_x, from_y)) {
+    for(std::size_t from_y = 0, to_y = static_cast<std::size_t>(YTOROW(p->y)) - ay; from_y < d->getHeight(); from_y++, to_y++)
+    {
+        for(std::size_t from_x = 0, to_x = static_cast<std::size_t>(p->x) - ax; from_x < d->getWidth(); from_x++, to_x++)
+        {
+            if(d->getCell(from_x, from_y))
+            {
                 int value = c + 1;
-                if (p->def->flags & Shiro::PDBRACKETS) {
+                if(p->def->flags & Shiro::PDBRACKETS)
+                {
                     value |= QRS_PIECE_BRACKETS;
                 }
-                if (q->state_flags & GAMESTATE_FADING) {
+                if(q->state_flags & GAMESTATE_FADING)
+                {
                     SET_PIECE_FADE_COUNTER(value, q->piece_fade_rate);
                 }
 
@@ -1729,24 +1725,29 @@ int qrs_lock(game_t *g, qrs_player *p)
     return 0;
 }
 
-bool qrs_chkcollision(game_t& g, qrs_player& p) {
+bool qrs_chkcollision(game_t &g, qrs_player &p)
+{
     std::pair<int, int> pos;
     return qrs_chkcollision(g, p, pos);
 }
 
-bool qrs_chkcollision(game_t& g, qrs_player& p, std::pair<int, int>& pos) {
+bool qrs_chkcollision(game_t &g, qrs_player &p, std::pair<int, int> &pos)
+{
     Shiro::Grid *d = &p.def->rotationTable[p.orient];
     Shiro::Grid *f = g.field;
     int d_x = 0;
     int d_y = 0;
-    //int d_val = 0;
+    // int d_val = 0;
     int f_x = 0;
     int f_y = 0;
-    //int f_val = 0;
+    // int f_val = 0;
 
-    for (d_y = 0, f_y = YTOROW(p.y) - p.def->anchorY; d_y < int(d->getHeight()); d_y++, f_y++) {
-        for (d_x = 0, f_x = p.x - p.def->anchorY; d_x < int(d->getWidth()); d_x++, f_x++) {
-            if (d->getCell(d_x, d_y) && f->getCell(f_x, f_y)) {
+    for(d_y = 0, f_y = YTOROW(p.y) - p.def->anchorY; d_y < int(d->getHeight()); d_y++, f_y++)
+    {
+        for(d_x = 0, f_x = p.x - p.def->anchorY; d_x < int(d->getWidth()); d_x++, f_x++)
+        {
+            if(d->getCell(d_x, d_y) && f->getCell(f_x, f_y))
+            {
                 pos = std::pair(d_x, d_y);
                 return true;
             }
@@ -1894,7 +1895,6 @@ int qrs_dropfield(game_t *g)
 
 int qrs_spawn_garbage(game_t *g, unsigned int flags)
 {
-    qrsdata *q = (qrsdata *)g->data;
     std::size_t i = 0u;
 
     if(flags & GARBAGE_COPY_BOTTOM_ROW)
@@ -1926,7 +1926,7 @@ int qrs_spawn_garbage(game_t *g, unsigned int flags)
     return 0;
 }
 
-void qrs_embiggen(Shiro::PieceDefinition& p)
+void qrs_embiggen(Shiro::PieceDefinition &p)
 {
     int xs[5] = {-1, -1, -1, -1, -1};
     int ys[5] = {-1, -1, -1, -1, -1};
@@ -1952,7 +1952,7 @@ void qrs_embiggen(Shiro::PieceDefinition& p)
         unsigned direction = static_cast<unsigned>(rand()) % 4u;
         unsigned tries = 0;
 
-switchStatement:
+    switchStatement:
         if(tries == 4)
         {
             k = 0;

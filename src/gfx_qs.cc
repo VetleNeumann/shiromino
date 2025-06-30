@@ -1,23 +1,26 @@
-#include "CoreState.h"
-#include "DisplayMode.h"
-#include "game_qs.h"
-#include "GameType.h"
-#include "video/Render.h"
-#include "video/Animation.h"
-#include "gfx_old.h"
-#include "gfx_qs.h"
-#include "QRS0.h"
-#include "stringtools.h"
-#include "random.h"
-#include "Timer.h"
-#include "types.h"
-#include "Credits.h"
 #include <fstream>
 #include <sstream>
-#include "SDL.h"
 #include <stdlib.h>
 #include <string>
 #include <vector>
+
+#include "CoreState.h"
+#include "Credits.h"
+#include "DisplayMode.h"
+#include "GameType.h"
+#include "QRS0.h"
+#include "SDL3/SDL.h"
+#include "Timer.h"
+#include "game_qs.h"
+#include "gfx_old.h"
+#include "gfx_helpers.h"
+#include "gfx_qs.h"
+#include "random.h"
+#include "stringtools.h"
+#include "video/Animation.h"
+#include "video/Render.h"
+
+
 // clang-format off
 int piece_colors[26] =
 {
@@ -69,16 +72,7 @@ SDL_Texture *gfx_create_credits_tex(CoreState *cs, int num_lines)
 
     SDL_RenderFillRect(cs->screen.renderer, nullptr);
 
-    struct text_formatting fmt = {
-        RGBA_DEFAULT,
-        RGBA_OUTLINE_DEFAULT,
-        false,
-        false,
-        1.0,
-        1.0,
-        ALIGN_CENTER,
-        20
-    };
+    struct text_formatting fmt = {RGBA_DEFAULT, RGBA_OUTLINE_DEFAULT, false, false, 1.0, 1.0, ALIGN_CENTER, 20};
 
     const std::vector<uint32_t> colors = {
         0xFFFF00FF, // yellow
@@ -88,14 +82,14 @@ SDL_Texture *gfx_create_credits_tex(CoreState *cs, int num_lines)
         0xFF1010FF, // red
         0x00FF00FF, // green
         0xFF10AFFF, // magenta
-        0xFFFF00FF // yellow
+        0xFFFF00FF  // yellow
     };
 
-    int colorIndex = 0;
+    std::size_t colorIndex = 0;
 
     std::vector<std::string> lines = strtools::split(Shiro::Credits::creditsString, '\n');
 
-    for(int i = 0; i < lines.size(); i++)
+    for(std::size_t i = 0; i < lines.size(); i++)
     {
         if(lines[i].size() == 0)
         {
@@ -139,7 +133,7 @@ int gfx_drawqs(game_t *g)
     CoreState *cs = g->origin;
     qrsdata *q = (qrsdata *)(g->data);
 
-    Shiro::PieceDefinition* pd_current = q->p1->def;
+    Shiro::PieceDefinition *pd_current = q->p1->def;
 
     unsigned int drawpiece_next1_flags = DRAWPIECE_PREVIEW;
     if(q->previews.size() > 0)
@@ -161,16 +155,16 @@ int gfx_drawqs(game_t *g)
 
     SDL_SetTextureColorMod(pieces_256x256, 220, 220, 220);
 
-    SDL_Rect palettesrc = { 0, 0, 256, 256 };
-    SDL_Rect palettedest = { FIELD_EDITOR_PALETTE_X, FIELD_EDITOR_PALETTE_Y, 16, 16 };
+    SDL_FRect palettesrc = {0, 0, 256, 256};
+    SDL_FRect palettedest = {FIELD_EDITOR_PALETTE_X, FIELD_EDITOR_PALETTE_Y, 16, 16};
 
-    SDL_Rect src = { 0, 0, 32, 32 };
-    SDL_Rect dest = { 0, 0, 32, 32 };
+    SDL_FRect src = {0, 0, 32, 32};
+    SDL_FRect dest = {0, 0, 32, 32};
 
     const float lt = static_cast<float>(q->p1->speeds->lock);
     const float l = static_cast<float>(q->p1counters->lock);
     const char r = 255 - (char)(80 * l / lt);
-    Shiro::u32 rgba = (r * 0x1000000) + (r * 0x10000) + (r * 0x100) + 0xFF;
+    std::uint32_t rgba = (r * 0x1000000) + (r * 0x10000) + (r * 0x100) + 0xFF;
 
     if(YTOROW(q->p1->y) != q->locking_row)
     {
@@ -201,8 +195,8 @@ int gfx_drawqs(game_t *g)
         }
     }
 
-    SDL_Rect labg_src = { 401, 0, 111 - 32, 64 };
-    SDL_Rect labg_dest = { 264 - 48 + 4 + x, 312 - 32 + y, 111 - 32, 64};
+    SDL_FRect labg_src = make_frect(401, 0, 111 - 32, 64);
+    SDL_FRect labg_dest = make_frect(264 - 48 + 4 + x, 312 - 32 + y, 111 - 32, 64);
 
     int preview1_x = x + 5 * 16;
     int preview2_x = q->tetromino_only ? x + 20 * 8 : x + 21 * 8;
@@ -254,16 +248,7 @@ int gfx_drawqs(game_t *g)
     std::string undo_len;
     std::string redo_len;
 
-    struct text_formatting fmt = {
-        RGBA_DEFAULT,
-        RGBA_OUTLINE_DEFAULT,
-        true,
-        false,
-        1.0,
-        1.0,
-        ALIGN_LEFT,
-        0
-    };
+    struct text_formatting fmt = {RGBA_DEFAULT, RGBA_OUTLINE_DEFAULT, true, false, 1.0, 1.0, ALIGN_LEFT, 0};
 
     // columns_adj->data = columns->data + (QRS_FIELD_W - q->field_w)/2;
     // columns_adj->slen = q->field_w;
@@ -282,16 +267,7 @@ int gfx_drawqs(game_t *g)
     if((q->pracdata && (q->pracdata->paused == 0)) || (!q->pracdata && cs->displayMode == Shiro::DisplayMode::DETAILED))
     {
         std::string secTimeStr;
-        struct text_formatting secTimeFmt = {
-            RGBA_DEFAULT,
-            0x000000A0,
-            false,
-            false,
-            1.0,
-            1.0,
-            ALIGN_RIGHT,
-            0
-        };
+        struct text_formatting secTimeFmt = {RGBA_DEFAULT, 0x000000A0, false, false, 1.0, 1.0, ALIGN_RIGHT, 0};
 
         long cumulativeTime = 0;
 
@@ -303,7 +279,7 @@ int gfx_drawqs(game_t *g)
             secX -= 96;
         }
 
-        SDL_Rect secTimeBGRect = { secX, secY, 180, 24 };
+        SDL_FRect secTimeBGRect = make_frect(secX, secY, 180, 24);
 
         Uint8 r_;
         Uint8 g_;
@@ -343,7 +319,7 @@ int gfx_drawqs(game_t *g)
         if(numSectionsDrawn > 0)
         {
             int secTimeBGHeight = 18 * (numSectionsDrawn - 1) + 16;
-            SDL_Rect secTimeOuterBGRect = { secX - 3, secY - 3, secTimeBGRect.w + 6, secTimeBGHeight + 6 };
+            SDL_FRect secTimeOuterBGRect = make_frect(secX - 3, secY - 3, secTimeBGRect.w + 6, secTimeBGHeight + 6);
 
             for(int i = 0; i < 3; i++)
             {
@@ -376,11 +352,11 @@ int gfx_drawqs(game_t *g)
 
                 Shiro::RenderFillRect(g->origin->screen, &secTimeBGRect);
 
-                int minutes = q->section_times[sec] / (60*60);
+                int minutes = q->section_times[sec] / (60 * 60);
                 int seconds = (q->section_times[sec] / 60) % 60;
                 int centiseconds = (int)((double)(q->section_times[sec] % 60) * 100.0 / 60.0);
 
-                int cuMinutes = cumulativeTime / (60*60);
+                int cuMinutes = cumulativeTime / (60 * 60);
                 int cuSeconds = (cumulativeTime / 60) % 60;
                 int cuCentiseconds = (int)((double)(cumulativeTime % 60) * 100.0 / 60.0);
 
@@ -390,7 +366,7 @@ int gfx_drawqs(game_t *g)
                 secTimeFmt.rgba = 0x00B000FF;
                 gfx_drawtext(cs, secTimeStr, textX, secY, monofont_fixedsys, &secTimeFmt);
                 secTimeFmt.rgba = RGBA_DEFAULT;
-                textX -= 9*8;
+                textX -= 9 * 8;
 
                 if(!q->pracdata && ((q->best_section_times[sec] < 0) || (q->section_times[sec] < q->best_section_times[sec])))
                 {
@@ -408,7 +384,7 @@ int gfx_drawqs(game_t *g)
                     gfx_drawtext(cs, secTimeStr, textX, secY, monofont_fixedsys, &secTimeFmt);
                 }
 
-                textX -= 9*8;
+                textX -= 9 * 8;
 
                 if(maxSection == 9 && sec == 9)
                 {
@@ -416,7 +392,7 @@ int gfx_drawqs(game_t *g)
                 }
                 else
                 {
-                    secTimeStr = strtools::format("%d", (sec+1) * 100);
+                    secTimeStr = strtools::format("%d", (sec + 1) * 100);
                 }
 
                 secTimeFmt.rgba = 0x2828FFFF;
@@ -443,9 +419,9 @@ int gfx_drawqs(game_t *g)
                 Shiro::RenderFillRect(g->origin->screen, &secTimeBGRect);
 
                 int textX = secX + 180 - 2;
-                textX -= 9*8;
+                textX -= 9 * 8;
 
-                int minutes = q->best_section_times[sec] / (60*60);
+                int minutes = q->best_section_times[sec] / (60 * 60);
                 int seconds = (q->best_section_times[sec] / 60) % 60;
                 int centiseconds = (int)((double)(q->best_section_times[sec] % 60) * 100.0 / 60.0);
 
@@ -468,7 +444,7 @@ int gfx_drawqs(game_t *g)
                 secTimeFmt.rgba = 0x909090FF;
                 gfx_drawtext(cs, secTimeStr, textX, secY, monofont_fixedsys, &secTimeFmt);
 
-                textX -= 9*8;
+                textX -= 9 * 8;
 
                 if(maxSection == 9 && sec == 9)
                 {
@@ -476,10 +452,10 @@ int gfx_drawqs(game_t *g)
                 }
                 else
                 {
-                    secTimeStr = strtools::format("%d", (sec+1) * 100);
+                    secTimeStr = strtools::format("%d", (sec + 1) * 100);
                 }
 
-                //secTimeFmt.rgba = 0x2020FFFF;
+                // secTimeFmt.rgba = 0x2020FFFF;
                 gfx_drawtext(cs, secTimeStr, textX, secY, monofont_fixedsys, &secTimeFmt);
             }
 
@@ -516,8 +492,8 @@ int gfx_drawqs(game_t *g)
             gfx_drawtext(cs, cellPosStr, 350, 34, monofont_fixedsys, NULL);
             */
 
-            SDL_Rect padlockSrc = { 0, 280, 20, 20 };
-            SDL_Rect padlockDest = { QRS_FIELD_X + 14 * 16 + 2, QRS_FIELD_Y + 21 * 16, 20, 20 };
+            SDL_FRect padlockSrc = {0, 280, 20, 20};
+            SDL_FRect padlockDest = {QRS_FIELD_X + 14 * 16 + 2, QRS_FIELD_Y + 21 * 16, 20, 20};
 
             if(!q->pracdata->usr_field_locked)
             {
@@ -555,16 +531,7 @@ int gfx_drawqs(game_t *g)
             {
                 redo_len = strtools::format("%d", q->pracdata->usr_field_redo.size());
 
-                struct text_formatting redoFmt = {
-                    RGBA_DEFAULT,
-                    RGBA_OUTLINE_DEFAULT,
-                    true,
-                    false,
-                    1.0,
-                    1.0,
-                    ALIGN_RIGHT,
-                    0
-                };
+                struct text_formatting redoFmt = {RGBA_DEFAULT, RGBA_OUTLINE_DEFAULT, true, false, 1.0, 1.0, ALIGN_RIGHT, 0};
 
                 gfx_drawtext(cs, redo, QRS_FIELD_X + 13 * 16 + 6, QRS_FIELD_Y + 23 * 16, monofont_square, &redoFmt);
                 gfx_drawtext(cs, redo_len, QRS_FIELD_X + 13 * 16 + 6, QRS_FIELD_Y + 24 * 16, monofont_square, &redoFmt);
@@ -589,11 +556,38 @@ int gfx_drawqs(game_t *g)
                 if(q->num_previews > 0 && q->previews.size() > 0)
                     gfx_drawpiece(cs, g->field, x, y, q->previews[0], drawpiece_next1_flags, Shiro::Orientation::FLAT, preview1_x, preview1_y, RGBA_DEFAULT);
                 if(q->num_previews > 1 && q->previews.size() > 1)
-                    gfx_drawpiece(cs, g->field, x, y, q->previews[1], DRAWPIECE_PREVIEW | DRAWPIECE_SMALL, Shiro::Orientation::FLAT, preview2_x, preview2_y, RGBA_DEFAULT);
+                    gfx_drawpiece(cs,
+                                  g->field,
+                                  x,
+                                  y,
+                                  q->previews[1],
+                                  DRAWPIECE_PREVIEW | DRAWPIECE_SMALL,
+                                  Shiro::Orientation::FLAT,
+                                  preview2_x,
+                                  preview2_y,
+                                  RGBA_DEFAULT);
                 if(q->num_previews > 2 && q->previews.size() > 2)
-                    gfx_drawpiece(cs, g->field, x, y, q->previews[2], DRAWPIECE_PREVIEW | DRAWPIECE_SMALL, Shiro::Orientation::FLAT, preview3_x, preview3_y, RGBA_DEFAULT);
+                    gfx_drawpiece(cs,
+                                  g->field,
+                                  x,
+                                  y,
+                                  q->previews[2],
+                                  DRAWPIECE_PREVIEW | DRAWPIECE_SMALL,
+                                  Shiro::Orientation::FLAT,
+                                  preview3_x,
+                                  preview3_y,
+                                  RGBA_DEFAULT);
                 if(q->num_previews > 3 && q->previews.size() > 3)
-                    gfx_drawpiece(cs, g->field, x, y, q->previews[3], DRAWPIECE_PREVIEW | DRAWPIECE_SMALL, Shiro::Orientation::FLAT, preview4_x, preview4_y, RGBA_DEFAULT);
+                    gfx_drawpiece(cs,
+                                  g->field,
+                                  x,
+                                  y,
+                                  q->previews[3],
+                                  DRAWPIECE_PREVIEW | DRAWPIECE_SMALL,
+                                  Shiro::Orientation::FLAT,
+                                  preview4_x,
+                                  preview4_y,
+                                  RGBA_DEFAULT);
             }
             else if(q->pracdata->using_seed)
             {
@@ -607,11 +601,38 @@ int gfx_drawqs(game_t *g)
                 if(q->num_previews > 0 && q->previews.size() > 0)
                     gfx_drawpiece(cs, g->field, x, y, q->previews[0], drawpiece_next1_flags, Shiro::Orientation::FLAT, preview1_x, preview1_y, RGBA_DEFAULT);
                 if(q->num_previews > 1 && q->previews.size() > 1)
-                    gfx_drawpiece(cs, g->field, x, y, q->previews[1], DRAWPIECE_PREVIEW | DRAWPIECE_SMALL, Shiro::Orientation::FLAT, preview2_x, preview2_y, RGBA_DEFAULT);
+                    gfx_drawpiece(cs,
+                                  g->field,
+                                  x,
+                                  y,
+                                  q->previews[1],
+                                  DRAWPIECE_PREVIEW | DRAWPIECE_SMALL,
+                                  Shiro::Orientation::FLAT,
+                                  preview2_x,
+                                  preview2_y,
+                                  RGBA_DEFAULT);
                 if(q->num_previews > 2 && q->previews.size() > 2)
-                    gfx_drawpiece(cs, g->field, x, y, q->previews[2], DRAWPIECE_PREVIEW | DRAWPIECE_SMALL, Shiro::Orientation::FLAT, preview3_x, preview3_y, RGBA_DEFAULT);
+                    gfx_drawpiece(cs,
+                                  g->field,
+                                  x,
+                                  y,
+                                  q->previews[2],
+                                  DRAWPIECE_PREVIEW | DRAWPIECE_SMALL,
+                                  Shiro::Orientation::FLAT,
+                                  preview3_x,
+                                  preview3_y,
+                                  RGBA_DEFAULT);
                 if(q->num_previews > 3 && q->previews.size() > 3)
-                    gfx_drawpiece(cs, g->field, x, y, q->previews[3], DRAWPIECE_PREVIEW | DRAWPIECE_SMALL, Shiro::Orientation::FLAT, preview4_x, preview4_y, RGBA_DEFAULT);
+                    gfx_drawpiece(cs,
+                                  g->field,
+                                  x,
+                                  y,
+                                  q->previews[3],
+                                  DRAWPIECE_PREVIEW | DRAWPIECE_SMALL,
+                                  Shiro::Orientation::FLAT,
+                                  preview4_x,
+                                  preview4_y,
+                                  RGBA_DEFAULT);
             }
 
             for(i = 0; i < 18; i++)
@@ -691,13 +712,13 @@ int gfx_drawqs(game_t *g)
             gfx_drawkeys(cs, &cs->keys, q->field_x + (18 * 16), 27 * 16, RGBA_DEFAULT);
 
             gfx_drawtext(cs, text_level, x + 14 * 16 + 4, y + 17 * 16, monofont_square, NULL);
-            //fmt.rgba = 0xFF7070FF;
+            // fmt.rgba = 0xFF7070FF;
             gfx_drawtext(cs, level, x + 14 * 16 + 4, y + 19 * 16, monofont_square, &fmt);
 
             if(q->pracdata->goal_level > 0)
             {
                 std::string goal_level = strtools::format("%d", q->pracdata->goal_level);
-                SDL_Rect line_rect = {x + 14 * 16 + 2, y + 20 * 16 + 2, 3 * 15 + 4, 2};
+                SDL_FRect line_rect = make_frect(x + 14 * 16 + 2, y + 20 * 16 + 2, 3 * 15 + 4, 2);
 
                 if(q->pracdata->goal_level >= 1000)
                     line_rect.w = 4 * 15 + 4;
@@ -709,7 +730,7 @@ int gfx_drawqs(game_t *g)
 
                 SDL_GetRenderDrawColor(cs->screen.renderer, &r_, &g_, &b_, &a_);
                 SDL_SetRenderDrawColor(cs->screen.renderer, 255, 255, 255, 255);
-                SDL_RenderDrawRect(cs->screen.renderer, &line_rect);
+                SDL_RenderRect(cs->screen.renderer, &line_rect);
                 SDL_SetRenderDrawColor(cs->screen.renderer, r_, g_, b_, a_);
 
                 fmt.rgba = 0xFFFFAFFF;
@@ -722,7 +743,7 @@ int gfx_drawqs(game_t *g)
     else
     {
         if(q->mode_type != MODE_PENTOMINO)
-            gfx_drawqrsfield(cs, g->field, q->mode_type, drawqrsfield_flags | TEN_W_TETRION/* | DRAWFIELD_JEWELED*/, x, y);
+            gfx_drawqrsfield(cs, g->field, q->mode_type, drawqrsfield_flags | TEN_W_TETRION /* | DRAWFIELD_JEWELED*/, x, y);
         else
             gfx_drawqrsfield(cs, g->field, q->mode_type, drawqrsfield_flags, x, y);
 
@@ -786,8 +807,8 @@ int gfx_drawqs(game_t *g)
         {
             int gradeWithoutFlags = q->grade & 0xff;
 
-            SDL_Rect grade_src = { 0, 390, 64, 64 };
-            SDL_Rect grade_dest = { x + 13 * 16 + 8, y + 20, 64, 64 };
+            SDL_FRect grade_src = make_frect(0, 390, 64, 64);
+            SDL_FRect grade_dest = make_frect(x + 13 * 16 + 8, y + 20, 64, 64);
             float size_multiplier = 1.0;
 
             // draw a shadowy square behind the grade
@@ -1058,16 +1079,41 @@ int gfx_drawqs(game_t *g)
         }
 
         if(q->num_previews > 0 && q->previews.size() > 0)
-            gfx_drawpiece(cs, g->field, x, y, q->previews[0], drawpiece_flags | drawpiece_next1_flags, Shiro::Orientation::FLAT, preview1_x, preview1_y, RGBA_DEFAULT);
+            gfx_drawpiece(
+                cs, g->field, x, y, q->previews[0], drawpiece_flags | drawpiece_next1_flags, Shiro::Orientation::FLAT, preview1_x, preview1_y, RGBA_DEFAULT);
         if(q->num_previews > 1 && q->previews.size() > 1)
-            gfx_drawpiece(
-                cs, g->field, x, y, q->previews[1], drawpiece_flags | DRAWPIECE_PREVIEW | DRAWPIECE_SMALL, Shiro::Orientation::FLAT, preview2_x, preview2_y, RGBA_DEFAULT);
+            gfx_drawpiece(cs,
+                          g->field,
+                          x,
+                          y,
+                          q->previews[1],
+                          drawpiece_flags | DRAWPIECE_PREVIEW | DRAWPIECE_SMALL,
+                          Shiro::Orientation::FLAT,
+                          preview2_x,
+                          preview2_y,
+                          RGBA_DEFAULT);
         if(q->num_previews > 2 && q->previews.size() > 2)
-            gfx_drawpiece(
-                cs, g->field, x, y, q->previews[2], drawpiece_flags | DRAWPIECE_PREVIEW | DRAWPIECE_SMALL, Shiro::Orientation::FLAT, preview3_x, preview3_y, RGBA_DEFAULT);
+            gfx_drawpiece(cs,
+                          g->field,
+                          x,
+                          y,
+                          q->previews[2],
+                          drawpiece_flags | DRAWPIECE_PREVIEW | DRAWPIECE_SMALL,
+                          Shiro::Orientation::FLAT,
+                          preview3_x,
+                          preview3_y,
+                          RGBA_DEFAULT);
         if(q->num_previews > 3 && q->previews.size() > 3)
-            gfx_drawpiece(
-                cs, g->field, x, y, q->previews[3], drawpiece_flags | DRAWPIECE_PREVIEW | DRAWPIECE_SMALL, Shiro::Orientation::FLAT, preview4_x, preview4_y, RGBA_DEFAULT);
+            gfx_drawpiece(cs,
+                          g->field,
+                          x,
+                          y,
+                          q->previews[3],
+                          drawpiece_flags | DRAWPIECE_PREVIEW | DRAWPIECE_SMALL,
+                          Shiro::Orientation::FLAT,
+                          preview4_x,
+                          preview4_y,
+                          RGBA_DEFAULT);
 
         if(q->hold)
         {
@@ -1121,24 +1167,28 @@ int gfx_drawqs(game_t *g)
             {
                 for(int j = q->p1->num_olds - 1; j >= 0; j--)
                 {
-                    gfx_drawpiece(cs, g->field, x, y, *pd_current, drawpiece_flags, q->p1->orient, old_piece_xs[j], old_piece_ys[j], 0xFFFFFF00 + (0xC0 / (j + 1)) );
-//                     if (g->frame_counter % 60 == 0) {
-//                        std::cerr << "Old piece x # " << j << ": " << q->p1->old_xs[j] << std::endl;
-//                     }
+                    gfx_drawpiece(
+                        cs, g->field, x, y, *pd_current, drawpiece_flags, q->p1->orient, old_piece_xs[j], old_piece_ys[j], 0xFFFFFF00 + (0xC0 / (j + 1)));
+                    //                     if (g->frame_counter % 60 == 0) {
+                    //                        std::cerr << "Old piece x # " << j << ": " << q->p1->old_xs[j] << std::endl;
+                    //                     }
                 }
             }
 
             gfx_drawpiece(cs, g->field, x, y, *pd_current, drawpiece_flags, q->p1->orient, piece_x, piece_y, rgba);
         }
-        else if (q->p1->state & (PSLOCKFLASH1 | PSLOCKFLASH2) && !(q->state_flags & GAMESTATE_BRACKETS) && pd_current) {
+        else if(q->p1->state & (PSLOCKFLASH1 | PSLOCKFLASH2) && !(q->state_flags & GAMESTATE_BRACKETS) && pd_current)
+        {
             gfx_drawpiece(cs, g->field, x, y, *pd_current, drawpiece_flags | DRAWPIECE_LOCKFLASH, q->p1->orient, piece_x, piece_y, RGBA_DEFAULT);
         }
         else if(q->p1->state & PSPRELOCKED && pd_current)
         {
-            if (q->state_flags & GAMESTATE_BRACKETS) {
+            if(q->state_flags & GAMESTATE_BRACKETS)
+            {
                 gfx_drawpiece(cs, g->field, x, y, *pd_current, drawpiece_flags, q->p1->orient, piece_x, piece_y, RGBA_DEFAULT);
             }
-            else {
+            else
+            {
                 gfx_drawpiece(cs, g->field, x, y, *pd_current, drawpiece_flags, q->p1->orient, piece_x, piece_y, 0x404040FF);
             }
         }
@@ -1153,16 +1203,7 @@ int gfx_drawqs(game_t *g)
 
     if(q->state_flags & GAMESTATE_FIREWORKS)
     {
-        struct text_formatting messageFmt = {
-            0x00FF00FF,
-            0x00000020,
-            true,
-            false,
-            2.0,
-            1.0,
-            ALIGN_CENTER,
-            10
-        };
+        struct text_formatting messageFmt = {0x00FF00FF, 0x00000020, true, false, 2.0, 1.0, ALIGN_CENTER, 10};
 
         if(q->grade == GRADE_GM)
         {
@@ -1179,16 +1220,7 @@ int gfx_drawqs(game_t *g)
 
     if(q->state_flags & GAMESTATE_GAMEOVER)
     {
-        struct text_formatting messageFmt = {
-            0x00FF00FF,
-            RGBA_OUTLINE_DEFAULT,
-            false,
-            false,
-            2.0,
-            1.0,
-            ALIGN_CENTER,
-            10
-        };
+        struct text_formatting messageFmt = {0x00FF00FF, RGBA_OUTLINE_DEFAULT, false, false, 2.0, 1.0, ALIGN_CENTER, 10};
 
         if(q->topped_out)
         {
@@ -1280,29 +1312,29 @@ int gfx_qs_lineclear(game_t *g, int row)
 
         if(row % 2)
         {
-            Shiro::AnimationEntity::push(g->origin->gfx, g->origin->screen,
-                g->origin->assetMgr,
-                "animation_lineclear",
-                Shiro::GfxLayer::animations,
-                q->field_x + (i * 16),
-                q->field_y + 16 + (16 * (row - QRS_FIELD_H + 20)),
-                5,
-                3,
-                mod
-            );
+            Shiro::AnimationEntity::push(g->origin->gfx,
+                                         g->origin->screen,
+                                         g->origin->assetMgr,
+                                         "animation_lineclear",
+                                         Shiro::GfxLayer::animations,
+                                         q->field_x + (i * 16),
+                                         q->field_y + 16 + (16 * (row - QRS_FIELD_H + 20)),
+                                         5,
+                                         3,
+                                         mod);
         }
         else
         {
-            Shiro::AnimationEntity::push(g->origin->gfx, g->origin->screen,
-                g->origin->assetMgr,
-                "animation_lineclear",
-                Shiro::GfxLayer::animations,
-                q->field_x + (i * 16) + 16,
-                q->field_y + 16 + (16 * (row - QRS_FIELD_H + 20)),
-                5,
-                3,
-                mod
-            );
+            Shiro::AnimationEntity::push(g->origin->gfx,
+                                         g->origin->screen,
+                                         g->origin->assetMgr,
+                                         "animation_lineclear",
+                                         Shiro::GfxLayer::animations,
+                                         q->field_x + (i * 16) + 16,
+                                         q->field_y + 16 + (16 * (row - QRS_FIELD_H + 20)),
+                                         5,
+                                         3,
+                                         mod);
         }
     }
 
@@ -1315,8 +1347,8 @@ int gfx_drawqsmedals(game_t *g)
         return -1;
 
     qrsdata *q = (qrsdata *)g->data;
-    SDL_Rect dest = { 228 + q->field_x, 150, 40, 20 };
-    SDL_Rect src = { 100, 0, 20, 10 };
+    SDL_FRect dest = make_frect(228 + q->field_x, 150, 40, 20);
+    SDL_FRect src = make_frect(100, 0, 20, 10);
     SDL_Texture *medals = Shiro::ImageAsset::get(g->origin->assetMgr, "medals").getTexture();
     bool medal = true;
 
@@ -1347,7 +1379,7 @@ int gfx_drawqsmedals(game_t *g)
         {
             size_multiplier = static_cast<float>(1.8f - 0.04f * (g->frame_counter - q->last_medal_ac_timestamp));
 
-            SDL_Rect dest_ = { dest.x, dest.y, 40, 20 };
+            SDL_FRect dest_ = {dest.x, dest.y, 40, 20};
 
             dest_.w = static_cast<int>(dest_.w * size_multiplier);
             dest_.h = static_cast<int>(dest_.h * size_multiplier);
@@ -1389,7 +1421,7 @@ int gfx_drawqsmedals(game_t *g)
         {
             size_multiplier = static_cast<float>(1.8f - 0.04f * (g->frame_counter - q->last_medal_sk_timestamp));
 
-            SDL_Rect dest_ = { dest.x, dest.y, 40, 20 };
+            SDL_FRect dest_ = {dest.x, dest.y, 40, 20};
 
             dest_.w = static_cast<int>(dest_.w * size_multiplier);
             dest_.h = static_cast<int>(dest_.h * size_multiplier);
@@ -1431,7 +1463,7 @@ int gfx_drawqsmedals(game_t *g)
         {
             size_multiplier = static_cast<float>(1.8f - 0.04f * (g->frame_counter - q->last_medal_ro_timestamp));
 
-            SDL_Rect dest_ = { dest.x, dest.y, 40, 20 };
+            SDL_FRect dest_ = {dest.x, dest.y, 40, 20};
 
             dest_.w = static_cast<int>(dest_.w * size_multiplier);
             dest_.h = static_cast<int>(dest_.h * size_multiplier);
@@ -1474,7 +1506,7 @@ int gfx_drawqsmedals(game_t *g)
         {
             size_multiplier = static_cast<float>(1.8f - 0.04f * (g->frame_counter - q->last_medal_st_timestamp));
 
-            SDL_Rect dest_ = { dest.x, dest.y, 40, 20 };
+            SDL_FRect dest_ = {dest.x, dest.y, 40, 20};
 
             dest_.w = static_cast<int>(dest_.w * size_multiplier);
             dest_.h = static_cast<int>(dest_.h * size_multiplier);
@@ -1516,7 +1548,7 @@ int gfx_drawqsmedals(game_t *g)
         {
             size_multiplier = static_cast<float>(1.8f - 0.04f * (g->frame_counter - q->last_medal_re_timestamp));
 
-            SDL_Rect dest_ = { dest.x, dest.y, 40, 20 };
+            SDL_FRect dest_ = {dest.x, dest.y, 40, 20};
 
             dest_.w = static_cast<int>(dest_.w * size_multiplier);
             dest_.h = static_cast<int>(dest_.h * size_multiplier);
@@ -1558,7 +1590,7 @@ int gfx_drawqsmedals(game_t *g)
         {
             size_multiplier = static_cast<float>(1.8f - 0.04f * (g->frame_counter - q->last_medal_co_timestamp));
 
-            SDL_Rect dest_ = { dest.x, dest.y, 40, 20 };
+            SDL_FRect dest_ = {dest.x, dest.y, 40, 20};
 
             dest_.w = static_cast<int>(dest_.w * size_multiplier);
             dest_.h = static_cast<int>(dest_.h * size_multiplier);
@@ -1578,7 +1610,7 @@ int gfx_drawfield_selection(game_t *g, struct pracdata *d)
 {
     qrsdata *q = (qrsdata *)g->data;
 
-    SDL_Rect dest = { 0, 0, 16, 16 };
+    SDL_FRect dest = {0, 0, 16, 16};
 
     int lesser_x = 0;
     int greater_x = 0;
@@ -1621,7 +1653,8 @@ int gfx_drawfield_selection(game_t *g, struct pracdata *d)
         {
             if(i >= 0 && i < 12 && j >= 0 && j < 20)
             {
-                if(d->usr_field.getCell(i, static_cast<std::size_t>(j) + 2) != QRS_FIELD_W_LIMITER) {
+                if(d->usr_field.getCell(i, static_cast<std::size_t>(j) + 2) != QRS_FIELD_W_LIMITER)
+                {
                     dest.x = q->field_x + 16 * (i + 1);
                     dest.y = QRS_FIELD_Y + 16 * (j + 2);
 

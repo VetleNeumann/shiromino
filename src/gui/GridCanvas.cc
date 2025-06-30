@@ -1,23 +1,25 @@
-#include "GridCanvas.h"
-#include "gui/GUI.h"
 #include <functional>
 #include <memory>
-#include "SDL.h"
 #include <utility>
-GridCanvas::GridCanvas(int ID, Shiro::Grid *cells, BindableInt& paletteVar, SDL_Texture *paletteTex, unsigned int cellW, unsigned int cellH, SDL_Rect relativeDestRect)
+
+#include "GridCanvas.h"
+#include "SDL3/SDL.h"
+#include "gfx_helpers.h"
+#include "gui/GUI.h"
+
+GridCanvas::GridCanvas(int ID, Shiro::Grid *cells, BindableInt &paletteVar, SDL_Texture *paletteTex, unsigned int cellW, unsigned int cellH,
+                       SDL_FRect relativeDestRect)
     : cells(cells), paletteTex(paletteTex), cellW(cellW), cellH(cellH), paletteVar(paletteVar)
 {
     this->relativeDestRect = relativeDestRect;
     this->ID = ID;
 
     readPaletteSelection(&paletteVar);
-    paletteSize = (unsigned) std::get<1>(paletteVar.getRange());
+    paletteSize = (unsigned)std::get<1>(paletteVar.getRange());
 
-    std::function<void(BindableVariable *)> membFunc = [=](BindableVariable *bv) { this->readPaletteSelection(bv); };
+    std::function<void(BindableVariable *)> membFunc = [this](BindableVariable *bv) { this->readPaletteSelection(bv); };
 
-    std::unique_ptr<VariableObserver> vob {
-        (VariableObserver *)( new MemberVariableObserver{membFunc} )
-    };
+    std::unique_ptr<VariableObserver> vob{(VariableObserver *)(new MemberVariableObserver{membFunc})};
 
     paletteVar.addObserver(vob);
 
@@ -38,7 +40,7 @@ GridCanvas::GridCanvas(int ID, Shiro::Grid *cells, BindableInt& paletteVar, SDL_
 
 void GridCanvas::draw()
 {
-    this->prepareRenderTarget(false);
+    this->prepareRenderTarget();
 
     GUIDrawBorder(relativeDestRect, 1, Shiro::GUI::RGBA_DEFAULT);
 
@@ -53,7 +55,8 @@ void GridCanvas::draw()
 
             if(clipboardMoveMode && clipboard)
             {
-                if(i >= cellUnderMouse.x && j >= cellUnderMouse.y && i < cellUnderMouse.x + int(clipboard->getWidth()) && j < cellUnderMouse.y + int(clipboard->getHeight()))
+                if(i >= cellUnderMouse.x && j >= cellUnderMouse.y && i < cellUnderMouse.x + int(clipboard->getWidth()) &&
+                   j < cellUnderMouse.y + int(clipboard->getHeight()))
                 {
                     int x = i - cellUnderMouse.x;
                     int y = j - cellUnderMouse.y;
@@ -64,8 +67,8 @@ void GridCanvas::draw()
             int destX = relativeDestRect.x + (i * cellW);
             int destY = relativeDestRect.y + (j * cellH);
 
-            SDL_Rect src = SDL_Rect{0, 0, (int)cellW, (int)cellH};
-            SDL_Rect dest = SDL_Rect{destX, destY, (int)cellW, (int)cellH};
+            auto src = make_frect(0, 0, cellW, cellH);
+            const auto dest = make_frect(destX, destY, cellW, cellH);
 
             if(!paletteValMap.empty())
             {
@@ -77,7 +80,7 @@ void GridCanvas::draw()
 
                     if(paletteTex)
                     {
-                        SDL_RenderCopy(guiSDLRenderer, paletteTex, &src, &dest);
+                        SDL_RenderTexture(guiSDLRenderer, paletteTex, &src, &dest);
                     }
                 }
             }
@@ -90,7 +93,7 @@ void GridCanvas::draw()
 
                     if(paletteTex)
                     {
-                        SDL_RenderCopy(guiSDLRenderer, paletteTex, &src, &dest);
+                        SDL_RenderTexture(guiSDLRenderer, paletteTex, &src, &dest);
                     }
                 }
             }
@@ -122,7 +125,8 @@ void GridCanvas::draw()
 
         Shiro::GridRect rect = {lesserX, lesserY, static_cast<std::size_t>(width), static_cast<std::size_t>(height)};
 
-        SDL_Rect selectionRect = SDL_Rect{relativeDestRect.x + (rect.x * (int)cellW), relativeDestRect.y + (rect.y * (int)cellH), (int)(rect.width * cellW), (int)(rect.height * cellH)};
+        const auto selectionRect = SDL_FRect{
+            relativeDestRect.x + (rect.x * (float)cellW), relativeDestRect.y + (rect.y * (float)cellH), rect.width * (float)cellW, rect.height * (float)cellH};
 
         Shiro::GUI::rgba_t v = 0x9090FF9F;
 
@@ -136,7 +140,7 @@ void GridCanvas::draw()
         int cursorX = relativeDestRect.x + (cellUnderMouse.x * cellW);
         int cursorY = relativeDestRect.y + (cellUnderMouse.y * cellH);
 
-        SDL_Rect cursorRect = SDL_Rect{cursorX, cursorY, (int)cellW, (int)cellH};
+        const SDL_FRect cursorRect = make_frect(cursorX, cursorY, (int)cellW, (int)cellH);
 
         Shiro::GUI::rgba_t v = 0xEFEFEF9F;
 
@@ -146,7 +150,7 @@ void GridCanvas::draw()
     }
 }
 
-void GridCanvas::handleEvent(GUIEvent& event)
+void GridCanvas::handleEvent(GUIEvent &event)
 {
     switch(event.type)
     {
@@ -186,10 +190,7 @@ void GridCanvas::handleEvent(GUIEvent& event)
     }
 }
 
-void GridCanvas::mouseMoved(int x, int y)
-{
-    cellUnderMouse = xyToCell(x, y);
-}
+void GridCanvas::mouseMoved(int x, int y) { cellUnderMouse = xyToCell(x, y); }
 
 void GridCanvas::mouseClicked(int x, int y, Uint8 button)
 {
@@ -209,7 +210,7 @@ void GridCanvas::mouseClicked(int x, int y, Uint8 button)
 
     if(button == SDL_BUTTON_LEFT)
     {
-        if(SDL_GetModState() & KMOD_SHIFT)
+        if(SDL_GetModState() & SDL_KMOD_SHIFT)
         {
             selectionVertex1 = selectionVertex2 = cellUnderMouse;
             selection = true;
@@ -243,7 +244,7 @@ void GridCanvas::mouseDragged(int x, int y, Uint8 button)
 
     if(button == SDL_BUTTON_LEFT)
     {
-        if(SDL_GetModState() & KMOD_SHIFT)
+        if(SDL_GetModState() & SDL_KMOD_SHIFT)
         {
             selectionVertex2 = cellUnderMouse;
         }
@@ -260,10 +261,7 @@ void GridCanvas::mouseDragged(int x, int y, Uint8 button)
     }
 }
 
-void GridCanvas::mouseReleased(int x, int y, Uint8 button)
-{
-    editInProgress = false;
-}
+void GridCanvas::mouseReleased(int, int, Uint8) { editInProgress = false; }
 
 void GridCanvas::keyPressed(SDL_Keycode kc)
 {
@@ -272,8 +270,8 @@ void GridCanvas::keyPressed(SDL_Keycode kc)
 
     switch(kc)
     {
-        case SDLK_a:
-            if(SDL_GetModState() & KMOD_CTRL)
+        case SDLK_A:
+            if(SDL_GetModState() & SDL_KMOD_CTRL)
             {
                 selectionVertex1.x = 0;
                 selectionVertex1.y = 0;
@@ -284,8 +282,8 @@ void GridCanvas::keyPressed(SDL_Keycode kc)
 
             break;
 
-        case SDLK_x:
-            if(SDL_GetModState() & KMOD_CTRL)
+        case SDLK_X:
+            if(SDL_GetModState() & SDL_KMOD_CTRL)
             {
                 cutSelection();
                 selection = false;
@@ -293,16 +291,16 @@ void GridCanvas::keyPressed(SDL_Keycode kc)
 
             break;
 
-        case SDLK_c:
-            if(SDL_GetModState() & KMOD_CTRL)
+        case SDLK_C:
+            if(SDL_GetModState() & SDL_KMOD_CTRL)
             {
                 copySelection();
             }
 
             break;
 
-        case SDLK_v:
-            if(SDL_GetModState() & KMOD_CTRL)
+        case SDLK_V:
+            if(SDL_GetModState() & SDL_KMOD_CTRL)
             {
                 if(clipboard != NULL)
                 {
@@ -313,16 +311,16 @@ void GridCanvas::keyPressed(SDL_Keycode kc)
 
             break;
 
-        case SDLK_z:
-            if(SDL_GetModState() & KMOD_CTRL)
+        case SDLK_Z:
+            if(SDL_GetModState() & SDL_KMOD_CTRL)
             {
                 undo();
             }
 
             break;
 
-        case SDLK_y:
-            if(SDL_GetModState() & KMOD_CTRL)
+        case SDLK_Y:
+            if(SDL_GetModState() & SDL_KMOD_CTRL)
             {
                 redo();
             }
@@ -565,10 +563,10 @@ void GridCanvas::pasteSelection()
     }
 
     Shiro::GridRect dest = {cellUnderMouse.x, cellUnderMouse.y, clipboard->getWidth(), clipboard->getHeight()};
-    cells->copyRect(*clipboard, { 0, 0, clipboard->getWidth(), clipboard->getHeight() }, dest);
+    cells->copyRect(*clipboard, {0, 0, clipboard->getWidth(), clipboard->getHeight()}, dest);
 }
 
-void GridCanvas::eraseCell(GUIVirtualPoint& point)
+void GridCanvas::eraseCell(GUIVirtualPoint &point)
 {
     if(paletteValMap.size() == 0)
     {
@@ -580,7 +578,7 @@ void GridCanvas::eraseCell(GUIVirtualPoint& point)
     }
 }
 
-void GridCanvas::fillCell(GUIVirtualPoint& point)
+void GridCanvas::fillCell(GUIVirtualPoint &point)
 {
     if(paletteValMap.size() <= paletteSelection)
     {
@@ -600,12 +598,9 @@ void GridCanvas::fillCell(GUIVirtualPoint& point)
     }
 }
 
-int GridCanvas::getCell(GUIVirtualPoint& point)
-{
-    return cells->getCell(point.x, point.y);
-}
+int GridCanvas::getCell(GUIVirtualPoint &point) { return cells->getCell(point.x, point.y); }
 
-void GridCanvas::fillCellPaletteListFromMappedVal(int mappedVal, std::vector<unsigned int>& paletteList)
+void GridCanvas::fillCellPaletteListFromMappedVal(int mappedVal, std::vector<unsigned int> &paletteList)
 {
     paletteList.clear();
 
