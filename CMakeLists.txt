@@ -270,7 +270,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     target_compile_options(shiromino_lib
         PUBLIC
           $<$<CONFIG:Debug>:-g>
-          -O1
+          $<$<CONFIG:Debug>:-O0>
           -Wall
           -Wextra
           -Wpedantic
@@ -315,6 +315,7 @@ endif()
 #
 add_executable(tests
 	tests/Grid_test.cc
+	tests/QRS0_test.cc
 )
 target_link_libraries(tests
 	PRIVATE

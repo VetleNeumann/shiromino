@@ -9,7 +9,7 @@ jobs:
       run: .github/workflows/build ${{ matrix.build-type }} ${{ matrix.compiler }}
     - name: Run Catch2 tests
       run: ./build/tests --reporter junit --out build/test-results.xml
-    - name: Report tests
+    - name: Upload test results
       if: matrix.compiler == 'clang++' && matrix.build-type == 'Debug'
       uses: dorny/test-reporter@v2
       with:
@@ -34,7 +34,7 @@ jobs:
       run: .github/workflows/build ${{ matrix.build-type }} ${{ matrix.compiler }}
     - name: Run Catch2 tests
       run: ./build/tests --reporter junit --out build/test-results.xml
-    - name: Test Results (macOS ${{ matrix.compiler }} ${{ matrix.build-type }})
+    - name: Upload test results
       if: matrix.compiler == 'clang++' && matrix.build-type == 'Debug'
       uses: dorny/test-reporter@v2
       with:
@@ -82,7 +82,7 @@ jobs:
     - name: Run Catch2 tests
       run: ./build/tests --reporter junit --out build/test-results.xml
       shell: msys2 {0}
-    - name: Test Results (Windows ${{ matrix.compiler }} ${{ matrix.build-type }})
+    - name: Upload test results
       if: matrix.compiler == 'clang++' && matrix.build-type == 'Debug'
       uses: dorny/test-reporter@v2
       with:
