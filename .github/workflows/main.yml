@@ -8,7 +8,14 @@ jobs:
     - name: Build targets
       run: .github/workflows/build ${{ matrix.build-type }} ${{ matrix.compiler }}
     - name: Run Catch2 tests
-      run: ./build/tests --reporter compact
+      run: ./build/tests --reporter compact --reporter junit --out build/test-results.xml
+    - name: Report tests
+      if: matrix.compiler == 'clang++' && matrix.build-type == 'Debug'
+      uses: dorny/test-reporter@v1
+      with:
+        name: Test Results (Linux ${{ matrix.compiler }} ${{ matrix.build-type }})
+        path: build/test-results.xml
+        reporter: junit
     strategy:
       matrix:
         compiler:
@@ -26,7 +33,14 @@ jobs:
     - name: Build targets
       run: .github/workflows/build ${{ matrix.build-type }} ${{ matrix.compiler }}
     - name: Run Catch2 tests
-      run: ./build/tests --reporter compact
+      run: ./build/tests --reporter compact --reporter junit --out build/test-results.xml
+    - name: Test Results (macOS ${{ matrix.compiler }} ${{ matrix.build-type }})
+      if: matrix.compiler == 'clang++' && matrix.build-type == 'Debug'
+      uses: dorny/test-reporter@v1
+      with:
+        name: Test Results (macOS ${{ matrix.compiler }} ${{ matrix.build-type }})
+        path: build/test-results.xml
+        reporter: junit
     strategy:
       matrix:
         compiler:
@@ -66,8 +80,15 @@ jobs:
         mv build/shiromino.exe data LICENSE.md README.md shiromino.ini artifacts
       shell: msys2 {0}
     - name: Run Catch2 tests
-      run: ./build/tests --reporter compact
+      run: ./build/tests --reporter compact --reporter junit --out build/test-results.xml
       shell: msys2 {0}
+    - name: Test Results (Windows ${{ matrix.compiler }} ${{ matrix.build-type }})
+      if: matrix.compiler == 'clang++' && matrix.build-type == 'Debug'
+      uses: dorny/test-reporter@v1
+      with:
+        name: Test Results (Windows ${{ matrix.compiler }} ${{ matrix.build-type }})
+        path: build/test-results.xml
+        reporter: junit
     - if: matrix.build-type == 'Release' && matrix.compiler == 'clang++'
       name: Upload artifacts
       uses: actions/upload-artifact@v4

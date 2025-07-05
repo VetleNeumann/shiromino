@@ -125,9 +125,9 @@ SCENARIO("L-piece can't jump obstacle")
     }
 }
 
-SCENARIO("Autho synchro S-piece rotation")
+SCENARIO("Auto-synchro S-piece rotation")
 {
-    // Tests Z-piece rotation which requires synchro move.
+    // Tests S-piece rotation which requires synchro move.
     // The specific case tested, is visualized here:
     // https://tetris.wiki/File:Synchro_compil_1.gif
     // Or in Fumen format:
@@ -165,7 +165,7 @@ SCENARIO("Autho synchro S-piece rotation")
             }
         }
 
-        WHEN("rotating with DAS (autho synchro)")
+        WHEN("rotating with DAS (auto-synchro)")
         {
             env.coreState.pressed.a = true;
             env.coreState.keys.left = 1;
