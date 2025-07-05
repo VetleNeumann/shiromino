@@ -11,11 +11,11 @@ jobs:
       run: ./build/tests --reporter junit --out build/test-results.xml
     - name: Report tests
       if: matrix.compiler == 'clang++' && matrix.build-type == 'Debug'
-      uses: dorny/test-reporter@v1
+      uses: dorny/test-reporter@v2
       with:
         name: Test Results (Linux ${{ matrix.compiler }} ${{ matrix.build-type }})
         path: build/test-results.xml
-        reporter: junit
+        reporter: java-junit
     strategy:
       matrix:
         compiler:
@@ -36,11 +36,11 @@ jobs:
       run: ./build/tests --reporter junit --out build/test-results.xml
     - name: Test Results (macOS ${{ matrix.compiler }} ${{ matrix.build-type }})
       if: matrix.compiler == 'clang++' && matrix.build-type == 'Debug'
-      uses: dorny/test-reporter@v1
+      uses: dorny/test-reporter@v2
       with:
         name: Test Results (macOS ${{ matrix.compiler }} ${{ matrix.build-type }})
         path: build/test-results.xml
-        reporter: junit
+        reporter: java-junit
     strategy:
       matrix:
         compiler:
@@ -84,11 +84,11 @@ jobs:
       shell: msys2 {0}
     - name: Test Results (Windows ${{ matrix.compiler }} ${{ matrix.build-type }})
       if: matrix.compiler == 'clang++' && matrix.build-type == 'Debug'
-      uses: dorny/test-reporter@v1
+      uses: dorny/test-reporter@v2
       with:
         name: Test Results (Windows ${{ matrix.compiler }} ${{ matrix.build-type }})
         path: build/test-results.xml
-        reporter: junit
+        reporter: java-junit
     - if: matrix.build-type == 'Release' && matrix.compiler == 'clang++'
       name: Upload artifacts
       uses: actions/upload-artifact@v4
