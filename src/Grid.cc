@@ -1,4 +1,5 @@
 #include "Grid.h"
+#include <iostream>
 
 Shiro::Grid::Grid() : width(0), height(0) {}
 
@@ -229,4 +230,14 @@ std::size_t Shiro::Grid::cellsFilled() const {
         }
     }
     return numCellsFilled;
+}
+
+void Shiro::Grid::print() const {
+    for (const auto& row : cells) {
+        for (const auto& cell : row) {
+            const char cellRepresentation = (cell == 0) ? '.' : 'x';
+            std::cout << cellRepresentation << " ";
+        }
+        std::cout << std::endl;
+    }
 }

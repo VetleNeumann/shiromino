@@ -116,6 +116,7 @@ void pracdata_destroy(pracdata *d)
     if (d->usr_timings) {
         delete d->usr_timings;
     }
+    delete d;
 }
 
 pracdata *pracdata_cpy(pracdata *d)
@@ -1663,7 +1664,7 @@ int qrs_fall(game_t *g, qrs_player *p, int grav)
         {
             p->y -= (256 + (p->y & 255));
 
-            if(p->state & PSFALL && grav != 28 * 256)
+            if(p->state & PSFALL && grav != 28 * 256 && g->origin->settings.sfxVolume > 0)
             {
                 Shiro::SfxAsset::get(g->origin->assetMgr, "land").play(g->origin->settings);
             }

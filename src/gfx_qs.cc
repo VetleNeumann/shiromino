@@ -52,7 +52,7 @@ int piece_colors[26] =
 
 SDL_Texture *gfx_create_credits_tex(CoreState *cs, int num_lines)
 {
-    if(num_lines <= 0)
+    if(cs == nullptr || cs->screen.renderer == nullptr || num_lines <= 0)
     {
         return nullptr;
     }

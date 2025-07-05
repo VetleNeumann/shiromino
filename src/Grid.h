@@ -51,6 +51,8 @@ namespace Shiro {
 
         std::size_t cellsFilled() const;
 
+        void print() const;
+
     private:
         std::size_t width;
         std::size_t height;

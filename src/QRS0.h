@@ -150,8 +150,8 @@
 #define GOLD 3
 #define PLATINUM 4
 
-#define YTOROW(n)   (n/256)
-#define ROWTOY(n)   (n*256)
+#define YTOROW(n)   ((n) / 256)
+#define ROWTOY(n)   ((n) * 256)
 #define IS_STACK(n)    ((!n || n == -2 || n == GRID_OOB || n == QRS_FIELD_W_LIMITER) ? 0 : 1)
 #define IS_INBOUNDS(n) (IS_STACK(n) || !n || n == -2)
 #define IS_QRS_PIECE(n) (n >= 0 && n < 25)
