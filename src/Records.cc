@@ -233,6 +233,10 @@ void scoredb_add_live_sectiontime(Shiro::Records::List *records, Shiro::Player* 
 
 void scoredb_clear_live_sectiontimes(Shiro::Records::List *records)
 {
+    if (records == nullptr || records->db == nullptr) {
+        return; // Nothing to clear
+    }
+
     sqlite3_stmt *sql;
     const char *deleteLiveSectionTimesSql = R"(
         DELETE FROM liveSectionTimes;
